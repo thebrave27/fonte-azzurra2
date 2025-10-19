@@ -55,7 +55,7 @@ def parse_rss():
         return None
 
 # ----------------------------------------------------------------------
-# FUNZIONE SCRAPING FALLBACK (SSC Napoli) - CON CORREZIONE DEFINITIVA
+# FUNZIONE SCRAPING FALLBACK (SSC Napoli) - CON CORREZIONE DUPLICAZIONE
 # ----------------------------------------------------------------------
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
@@ -98,8 +98,20 @@ def scraping_fallback():
             # 2. Estrazione Titolo
             title = a_tag.get_text().strip()
             
-            # Pulizia e verifica finale
+            # Pulizia generale del titolo
             title = re.sub(r'\s+', ' ', title).strip()
+            
+            # *** NUOVA LOGICA DI PULIZIA: Rimuove la duplicazione del titolo (es. "Titolo Titolo") ***
+            title_parts = title.split()
+            mid_point = len(title_parts) // 2
+            first_half = ' '.join(title_parts[:mid_point])
+            second_half = ' '.join(title_parts[mid_point:])
+
+            if first_half and second_half and first_half == second_half:
+                title = first_half
+                print(f"🗑️ Titolo duplicato rimosso: {title}")
+            # **************************************************************************************
+                
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                  title = "Senza titolo (ESTRAZIONE FALLITA)"
 
@@ -170,7 +182,7 @@ def update_index_html(articles):
     new_content_html = ""
     for article in articles:
         link = article["link"] if article["link"] else "#"
-        # Il formato qui deve matchare lo stile del tuo CSS (a, small)
+        # Genera il tag <li> con il link <a> e la data <small>
         new_content_html += f'<li><a href="{link}" target="_blank">{article["title"]}</a> <small>({article["date"]})</small></li>\n'
     
     # 3. Costruisci il nuovo contenuto completo con la sostituzione sicura
