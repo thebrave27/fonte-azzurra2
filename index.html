@@ -1,96 +1,120 @@
-
-<li><a href="https://sscnapoli.it/psv-napoli-arbitra-siebert/" target="_blank">PSV-Napoli: arbitra Siebert PSV-Napoli: arbitra Siebert</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/niaf-de-laurentiis-film-prizes-vince-pomodoro-di-adriana-serrato/" target="_blank">NIAF/ De Laurentiis Film Prizes: vince Pomodoro di Adriana Serrato NIAF/ De Laurentiis Film Prizes: vince Pomodoro di Adriana Serrato</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/match-report-torino-napoli-1-0/" target="_blank">Match report | Torino-Napoli 1-0 Match report | Torino-Napoli 1-0</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/psv-napoli-info-tifosi-ospiti/" target="_blank">PSV-Napoli: info tifosi ospiti PSV-Napoli: info tifosi ospiti</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/ssc-napoli-ed-ea7-presentano-il-kit-halloween-2025-2026/" target="_blank">SSC Napoli ed EA7 presentano il Kit Halloween 2025-2026 SSC Napoli ed EA7 presentano il Kit Halloween 2025-2026</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/conte-a-torino-gara-difficile-inizia-un-tour-de-force-ce-bisogno-dellapporto-di-tutto-il-gruppo/" target="_blank">Conte: “A Torino gara difficile. Inizia un tour de force, c̵... Conte: “A Torino gara difficile. Inizia un tour de force, c’è bisogno dell’apporto di tutto il gruppo”</a> <small>()</small></li>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fonte Azzurra Aggregata | SSC Napoli News</title>
-    
-    <style>
-        /* Importa un font che si adatti a un look sportivo/moderno */
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Comunicati Ufficiali — Napoli (aggregator)</title>
+    <meta name="description" content="Aggregatore di comunicati e interviste ufficiali SSC Napoli — solo contenuti ufficiali, nessuna opinione." />
 
+    <style>
+        /* Variabili Colore Napoli e Font */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
         :root {
             --napoli-blue: #086A9E; /* Azzurro scuro ufficiale */
             --napoli-white: #FFFFFF;
             --napoli-light-blue: #D0E9F5; /* Azzurro chiaro per sfondi/hover */
-            --text-color: #333333;
+            --text-color: #111;
         }
 
+        /* Stile di Base (dal tuo codice originale) */
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--napoli-white);
+            font-family: 'Roboto', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+            max-width: 960px;
+            margin: 24px auto;
+            padding: 0 16px;
             color: var(--text-color);
-            margin: 40px;
+            background-color: var(--napoli-white); /* Sfondo Bianco Napoli */
             line-height: 1.6;
         }
 
-        h1 {
-            color: var(--napoli-blue);
-            border-bottom: 3px solid var(--napoli-blue);
-            padding-bottom: 10px;
-            font-size: 2.5em;
-            font-weight: 700;
-        }
-        
-        p {
-            margin-bottom: 25px;
-            font-style: italic;
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
-        /* Stile della lista degli articoli */
-        ul#articoli-dinamici {
-            list-style: none; /* Rimuove i pallini di default */
+        h1 {
+            color: var(--napoli-blue); /* Titolo Azzurro */
+            border-bottom: 3px solid var(--napoli-blue);
+            padding-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+            width: 100%; /* Occupa tutta la larghezza dell'header */
+        }
+        
+        /* Stile Card/Articoli (adattato dal tuo .card e dal nostro li) */
+        main#feed {
+            list-style: none;
             padding: 0;
         }
 
-        ul#articoli-dinamici li {
-            background-color: var(--napoli-light-blue);
-            border: 1px solid var(--napoli-blue);
-            margin-bottom: 10px;
+        /* Applichiamo lo stile della card agli elementi li generati dallo script */
+        main#feed li {
+            border-radius: 8px;
             padding: 12px 15px;
-            border-radius: 5px;
+            margin: 12px 0;
+            background-color: var(--napoli-light-blue); /* Sfondo Azzurrino */
+            box-shadow: 0 1px 3px rgba(0,0,0,.08); /* Ombra leggermente più visibile */
+            border: 1px solid var(--napoli-blue);
             transition: background-color 0.3s;
         }
 
-        ul#articoli-dinamici li:hover {
+        main#feed li:hover {
             background-color: #AECDE2; /* Blu più scuro al passaggio del mouse */
         }
-        
-        /* Stile del link */
-        ul#articoli-dinamici li a {
+
+        /* Stile Link */
+        main#feed li a {
             color: var(--napoli-blue);
-            text-decoration: none; /* Rimuove la sottolineatura */
+            text-decoration: none;
             font-weight: 700;
             font-size: 1.1em;
+            display: block; /* Rende il link più facilmente cliccabile */
         }
 
-        ul#articoli-dinamici li a:hover {
+        main#feed li a:hover {
             text-decoration: underline;
         }
-        
-        /* Stile della data (small tag) */
-        ul#articoli-dinamici li small {
-            color: #666;
-            margin-left: 10px;
-            font-size: 0.85em;
-        }
 
+        /* Stile Data (small tag) */
+        main#feed li small {
+            font-size: 0.9rem;
+            color: #555;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        /* Stile Footer */
+        footer {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+        
+        /* Stile Generale Link */
+        a {
+            color: #0b57d0;
+            text-decoration: none;
+        }
+        a:hover {
+             text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <h1>Articoli Napoli</h1>
-    
-    <p>Ultimi articoli aggregati da Fonte Azzurra e SSC Napoli.</p>
-    
-    <ul id="articoli-dinamici">
-        </ul>
-    
+    <header>
+        <h1>Comunicati & Interviste Ufficiali — Napoli</h1>
+    </header>
+
+    <main id="feed">
+        </main>
+
+    <footer>
+        <p>Nota: questo sito raccoglie solo contenuti ufficiali pubblicati da SSC Napoli e partner ufficiali. Se ritieni che un contenuto debba essere rimosso, <a href="/removal.html">clicca qui</a>.</p>
+        <p>Ultimo aggiornamento: (Data da aggiungere qui se lo desideri).</p>
+    </footer>
 </body>
 </html>
