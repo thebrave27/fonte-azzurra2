@@ -73,7 +73,6 @@ def scraping_fallback():
         
         if not article_containers:
             print("❌ Errore nello scraping: Fallito il selettore container primario.")
-            # Tentativo con un selettore di fallback
             article_containers = soup.find_all('div', class_=re.compile(r'elementor-post__card|post-card'))
             if not article_containers:
                  print("❌ Errore nello scraping: Fallito anche il selettore generico di card.")
@@ -85,11 +84,9 @@ def scraping_fallback():
             # 1. Estrazione Link e Titolo
             title_h3 = item.select_one('h3.elementor-post__title')
             
-            # Cerca il tag <a> all'interno dell'h3 (contiene link e testo del titolo)
             if title_h3:
                 a_tag = title_h3.find('a', href=True)
             else:
-                 # Fallback: Cerchiamo l'elemento <a> più grande che copre l'articolo
                  a_tag = item.select_one('a[href]')
 
 
@@ -98,22 +95,19 @@ def scraping_fallback():
             
             link = a_tag['href']
             
-            # 2. Estrazione Titolo: Lo prendiamo direttamente dal testo del tag <a> principale
+            # 2. Estrazione Titolo
             title = a_tag.get_text().strip()
             
             # Pulizia e verifica finale
             title = re.sub(r'\s+', ' ', title).strip()
-            # Se il titolo estratto è vuoto o solo un'azione ('Leggi tutto'), usa il fallback di emergenza
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                  title = "Senza titolo (ESTRAZIONE FALLITA)"
 
 
             # 3. Estrazione Data
-            # Selettore specifico per i meta-dati del post
             date_tag = item.select_one('div.elementor-post__meta-data span.elementor-post-date')
             date_str = date_tag.get_text().strip() if date_tag else ""
             
-            # Estrazione del formato data gg/mm/aaaa
             date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_str)
             formatted_date = date_match.group(0) if date_match else ""
 
@@ -140,7 +134,7 @@ def scraping_fallback():
     return articles
 
 # ----------------------------------------------------------------------
-# FUNZIONI DI SCRITTURA FILE
+# FUNZIONI DI SCRITTURA FILE (Logica Anti-Duplicazione)
 # ----------------------------------------------------------------------
 def save_to_json(data):
     """Salva i dati estratti nel file JSON."""
@@ -176,6 +170,7 @@ def update_index_html(articles):
     new_content_html = ""
     for article in articles:
         link = article["link"] if article["link"] else "#"
+        # Il formato qui deve matchare lo stile del tuo CSS (a, small)
         new_content_html += f'<li><a href="{link}" target="_blank">{article["title"]}</a> <small>({article["date"]})</small></li>\n'
     
     # 3. Costruisci il nuovo contenuto completo con la sostituzione sicura
