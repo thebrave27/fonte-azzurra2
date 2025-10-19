@@ -17,12 +17,12 @@ INDEX_HTML_PATH = 'index.html'
 # ----------------------------------------------------------------------
 def parse_rss():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
-    # ... (Il codice di parse_rss() rimane invariato) ...
     print("🔵 Avvio aggiornamento Fonte Azzurra...")
     try:
         feed = feedparser.parse(URL_FEED_AZZURRA)
         entries = []
         for entry in feed.entries[:MAX_ARTICLES]:
+            # Pulisce il titolo da eventuali tag HTML
             title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
             date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
             
@@ -54,13 +54,11 @@ def parse_rss():
         print("Passaggio al fallback.")
         return None
 
-
 # ----------------------------------------------------------------------
 # FUNZIONE SCRAPING FALLBACK (SSC Napoli) - CON CORREZIONE DUPLICAZIONE
 # ----------------------------------------------------------------------
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
-    # ... (Il codice di scraping_fallback() rimane invariato) ...
     print(f"🧩 Fallback attivo: estraggo articoli dal sito SSC Napoli da {FALLBACK_URL}...")
     articles = []
     
@@ -70,6 +68,7 @@ def scraping_fallback():
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
+        # Selettore Definitivo: Cerchiamo gli elementi contenitori di post più specifici
         article_containers = soup.select('div.elementor-posts-container article.elementor-post')
         
         if not article_containers:
@@ -187,7 +186,7 @@ def update_index_html(articles):
         new_content_html += f'  <a href="{link}" target="_blank" class="block group">\n'
         new_content_html += f'    <h3 class="text-xl font-bold text-napoli-text group-hover:text-napoli-white transition-colors duration-200">{article["title"]}</h3>\n'
         new_content_html += f'  </a>\n'
-        new_content_html += f'  <p class="text-sm mt-1 text-napoli-text/70">{article["date"]} <span class="font-semibold ml-2 text-napoli-text">{article["source"]}</span></p>\n'
+        new_content_html += f'  <p class="text-sm mt-1 text-napoli-text/70">{article["date"]} <span class="font-semibold ml-2 text-napoli-text">| {article["source"]}</span></p>\n'
         new_content_html += f'</div>\n'
     
     # 3. Costruisci il nuovo contenuto completo con la sostituzione sicura
