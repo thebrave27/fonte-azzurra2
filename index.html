@@ -1,116 +1,63 @@
-
-<li><a href="https://sscnapoli.it/psv-napoli-arbitra-siebert/" target="_blank">PSV-Napoli: arbitra Siebert</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/niaf-de-laurentiis-film-prizes-vince-pomodoro-di-adriana-serrato/" target="_blank">NIAF/ De Laurentiis Film Prizes: vince Pomodoro di Adriana Serrato</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/match-report-torino-napoli-1-0/" target="_blank">Match report | Torino-Napoli 1-0</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/psv-napoli-info-tifosi-ospiti/" target="_blank">PSV-Napoli: info tifosi ospiti</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/ssc-napoli-ed-ea7-presentano-il-kit-halloween-2025-2026/" target="_blank">SSC Napoli ed EA7 presentano il Kit Halloween 2025-2026</a> <small>()</small></li>
-<li><a href="https://sscnapoli.it/conte-a-torino-gara-difficile-inizia-un-tour-de-force-ce-bisogno-dellapporto-di-tutto-il-gruppo/" target="_blank">Conte: “A Torino gara difficile. Inizia un tour de force, c̵... Conte: “A Torino gara difficile. Inizia un tour de force, c’è bisogno dell’apporto di tutto il gruppo”</a> <small>()</small></li>
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fonte Azzurra - Comunicati Ufficiali SSC Napoli</title>
-<style>
-  /* Importa un font se desiderato, altrimenti usa system-ui */
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
-    
-  /* Colori e Layout di Base */
-  body { 
-    background-color: #032B56; /* Blu Scuro Napoli */
-    color: #ffffff; 
-    font-family: 'Montserrat', sans-serif; 
-    margin:0; 
-    padding:0;
-    line-height: 1.6;
-  }
-  header { 
-    padding:20px; 
-    text-align:center; 
-    border-bottom:2px solid #ffffff;
-    max-width: 960px; /* Limite larghezza per centratura */
-    margin: 0 auto;
-  }
-  h1 { 
-    margin:0; 
-    font-size:2em; 
-    color:#ffffff;
-  }
-  nav { 
-    margin:10px 0; 
-    text-align:center;
-  }
-  nav a { 
-    color:#ffffff; 
-    margin:0 10px; 
-    text-decoration:none; 
-    font-weight:bold;
-  }
-  main { 
-    padding:20px;
-    max-width: 960px; /* Allinea al max-width dell'header */
-    margin: 0 auto;
-  }
-  
-  /* Stile Card Articolo (adattato per la lista <ul> generata dallo script) */
-  
-  ul#dynamic-articles {
-    list-style: none; /* Rimuove i pallini */
-    padding: 0;
-  }
-  
-  ul#dynamic-articles li { 
-    background-color:#05386B; /* Blu leggermente più chiaro per la card */
-    margin-bottom:15px; 
-    padding:15px; 
-    border-radius:8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Ombra scura */
-  }
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
-  /* Stile Link (Titolo) */
-  ul#dynamic-articles li a {
-    font-size:1.2em; 
-    font-weight:bold;
-    color: #A9CCE3; /* Azzurro chiaro per il testo cliccabile */
-    text-decoration: none;
-    display: block; 
-    margin-bottom: 5px;
-  }
-  ul#dynamic-articles li a:hover {
-    color: #ffffff; /* Bianco al passaggio del mouse */
-    text-decoration: underline;
-  }
-  
-  /* Stile Data (small tag) */
-  ul#dynamic-articles li small { 
-    font-size:0.9em; 
-    color:#708090; /* Grigio-azzurro per la data */
-  }
-  
-  /* Stile Footer */
-  footer { 
-    text-align:center; 
-    padding:15px; 
-    border-top:2px solid #ffffff; 
-    font-size:0.8em; 
-    max-width: 960px; /* Allinea al max-width */
-    margin: 0 auto;
-  }
+<script>
+    // Configurazione Tailwind per i colori del Napoli
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'napoli-dark': '#032B56',  /* Blu Scuro Sfondo */
+                    'napoli-card': '#05386B',  /* Blu Scheda Articolo */
+                    'napoli-text': '#A9CCE3',  /* Azzurro Chiaro Testo */
+                    'napoli-white': '#ffffff',
+                    'napoli-border': '#ffffff',
+                },
+                fontFamily: {
+                    'sans': ['Montserrat', 'sans-serif'],
+                },
+            },
+        },
+    }
+</script>
+
+<style>
+    /* Stili Base */
+    body { background-color: var(--napoli-dark); color: var(--napoli-white); }
+    /* Aggiungiamo un contenitore per limitare la larghezza come nell'esempio */
+    .container { max-width: 960px; margin-left: auto; margin-right: auto; }
 </style>
 </head>
-<body>
-<header>
-  <h1>Fonte Azzurra</h1>
-  <nav>
-    <a href="?lang=it">IT</a> | <a href="?lang=en">EN</a>
-  </nav>
+<body class="font-sans">
+
+<header class="py-5 border-b-2 border-napoli-border">
+    <div class="container px-4 text-center">
+        <h1 class="text-3xl font-bold text-napoli-white">Fonte Azzurra</h1>
+        <nav class="mt-2">
+            <a href="?lang=it" class="text-napoli-white mx-2 hover:text-napoli-text font-bold">IT</a> | 
+            <a href="?lang=en" class="text-napoli-white mx-2 hover:text-napoli-text font-bold">EN</a>
+        </nav>
+    </div>
 </header>
-<main>
-  <ul id="dynamic-articles">
-    </ul>
+
+<main class="container px-4 py-8">
+    <h2 class="text-2xl font-bold border-b-2 border-napoli-text pb-2 mb-6">Tutte le Notizie Ufficiali</h2>
+
+    <div id="dynamic-articles" class="space-y-6">
+        </div>
 </main>
-<footer>
-  Fonte Azzurra - Contenuti ufficiali SSC Napoli. Non affiliato alla SSC Napoli S.p.A.
+
+<footer class="py-4 border-t-2 border-napoli-border mt-10">
+    <div class="container px-4 text-center text-sm">
+        Fonte Azzurra - Contenuti ufficiali SSC Napoli. Non affiliato alla SSC Napoli S.p.A.
+    </div>
 </footer>
+
 </body>
 </html>
