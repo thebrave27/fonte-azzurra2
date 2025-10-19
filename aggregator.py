@@ -17,12 +17,12 @@ INDEX_HTML_PATH = 'index.html'
 # ----------------------------------------------------------------------
 def parse_rss():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
+    # ... (Il codice di parse_rss() rimane invariato) ...
     print("🔵 Avvio aggiornamento Fonte Azzurra...")
     try:
         feed = feedparser.parse(URL_FEED_AZZURRA)
         entries = []
         for entry in feed.entries[:MAX_ARTICLES]:
-            # Pulisce il titolo da eventuali tag HTML
             title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
             date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
             
@@ -54,11 +54,13 @@ def parse_rss():
         print("Passaggio al fallback.")
         return None
 
+
 # ----------------------------------------------------------------------
 # FUNZIONE SCRAPING FALLBACK (SSC Napoli) - CON CORREZIONE DUPLICAZIONE
 # ----------------------------------------------------------------------
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
+    # ... (Il codice di scraping_fallback() rimane invariato) ...
     print(f"🧩 Fallback attivo: estraggo articoli dal sito SSC Napoli da {FALLBACK_URL}...")
     articles = []
     
@@ -68,7 +70,6 @@ def scraping_fallback():
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Selettore Definitivo: Cerchiamo gli elementi contenitori di post più specifici
         article_containers = soup.select('div.elementor-posts-container article.elementor-post')
         
         if not article_containers:
@@ -101,7 +102,7 @@ def scraping_fallback():
             # Pulizia generale del titolo
             title = re.sub(r'\s+', ' ', title).strip()
             
-            # *** NUOVA LOGICA DI PULIZIA: Rimuove la duplicazione del titolo (es. "Titolo Titolo") ***
+            # LOGICA DI PULIZIA: Rimuove la duplicazione del titolo (es. "Titolo Titolo")
             title_parts = title.split()
             mid_point = len(title_parts) // 2
             first_half = ' '.join(title_parts[:mid_point])
@@ -110,7 +111,6 @@ def scraping_fallback():
             if first_half and second_half and first_half == second_half:
                 title = first_half
                 print(f"🗑️ Titolo duplicato rimosso: {title}")
-            # **************************************************************************************
                 
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                  title = "Senza titolo (ESTRAZIONE FALLITA)"
@@ -158,7 +158,7 @@ def save_to_json(data):
         print(f"❌ Errore nel salvataggio del JSON: {e}")
 
 def update_index_html(articles):
-    """Aggiorna la sezione dei contenuti dinamici nel file index.html (logica anti-duplicazione)."""
+    """Aggiorna la sezione dei contenuti dinamici nel file index.html (Output come Card)."""
     
     start_tag = ''
     end_tag = ''
@@ -170,7 +170,6 @@ def update_index_html(articles):
         print(f"❌ Errore: {INDEX_HTML_PATH} non trovato. Impossibile aggiornare.")
         return
 
-    # 1. Trova le posizioni dei tag
     start_index = content.find(start_tag)
     end_index = content.find(end_tag)
 
@@ -178,12 +177,18 @@ def update_index_html(articles):
         print("⚠️ Attenzione: I tag di sostituzione dinamica non sono presenti in index.html.")
         return
 
-    # 2. Crea il nuovo contenuto HTML
+    # 2. Crea il nuovo contenuto HTML con CLASSI TAILWIND
     new_content_html = ""
     for article in articles:
         link = article["link"] if article["link"] else "#"
-        # Genera il tag <li> con il link <a> e la data <small>
-        new_content_html += f'<li><a href="{link}" target="_blank">{article["title"]}</a> <small>({article["date"]})</small></li>\n'
+        
+        # Genera il blocco HTML per la Card
+        new_content_html += f'<div class="bg-napoli-card p-4 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300">\n'
+        new_content_html += f'  <a href="{link}" target="_blank" class="block group">\n'
+        new_content_html += f'    <h3 class="text-xl font-bold text-napoli-text group-hover:text-napoli-white transition-colors duration-200">{article["title"]}</h3>\n'
+        new_content_html += f'  </a>\n'
+        new_content_html += f'  <p class="text-sm mt-1 text-napoli-text/70">{article["date"]} <span class="font-semibold ml-2 text-napoli-text">{article["source"]}</span></p>\n'
+        new_content_html += f'</div>\n'
     
     # 3. Costruisci il nuovo contenuto completo con la sostituzione sicura
     updated_content = content[:start_index + len(start_tag)]
