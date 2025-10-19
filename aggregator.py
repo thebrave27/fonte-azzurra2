@@ -1,3 +1,62 @@
+import feedparser
+import requests
+from bs4 import BeautifulSoup
+import json
+from datetime import datetime
+import re
+
+# --- Configurazione Corretta ---
+URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
+FALLBACK_URL = "https://sscnapoli.it/news/"
+MAX_ARTICLES = 10
+FEED_JSON_PATH = 'feed.json'
+INDEX_HTML_PATH = 'index.html'
+
+# ----------------------------------------------------------------------
+# FUNZIONE PARSING RSS (Fonte Azzurra)
+# ----------------------------------------------------------------------
+def parse_rss():
+    """Tenta di analizzare il feed RSS di Fonte Azzurra."""
+    print("🔵 Avvio aggiornamento Fonte Azzurra...")
+    try:
+        feed = feedparser.parse(URL_FEED_AZZURRA)
+        entries = []
+        for entry in feed.entries[:MAX_ARTICLES]:
+            # Pulisce il titolo da eventuali tag HTML
+            title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
+            date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
+            
+            if date_str:
+                try:
+                    date_obj = datetime(*entry.published_parsed[:6])
+                    formatted_date = date_obj.strftime("%d/%m/%Y")
+                except Exception:
+                    formatted_date = ""
+            else:
+                formatted_date = ""
+
+            entries.append({
+                'title': title,
+                'link': entry.link,
+                'date': formatted_date,
+                'source': 'Fonte Azzurra'
+            })
+        
+        if entries:
+            print(f"✅ Estratti {len(entries)} articoli da Fonte Azzurra.")
+            return entries
+        
+        print("⚠️ Nessun articolo trovato nel feed RSS. Passaggio al fallback.")
+        return None
+
+    except Exception as e:
+        print(f"❌ Errore nel parsing RSS: {e}")
+        print("Passaggio al fallback.")
+        return None
+
+# ----------------------------------------------------------------------
+# FUNZIONE SCRAPING FALLBACK (SSC Napoli) - CON CORREZIONE DEFINITIVA
+# ----------------------------------------------------------------------
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
     print(f"🧩 Fallback attivo: estraggo articoli dal sito SSC Napoli da {FALLBACK_URL}...")
@@ -9,43 +68,48 @@ def scraping_fallback():
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Selettore ESATTO per i container degli articoli sulla pagina /news/
-        # Usiamo il selettore che contiene sia l'immagine che il titolo/data
+        # Selettore Definitivo: Cerchiamo gli elementi contenitori di post più specifici
         article_containers = soup.select('div.elementor-posts-container article.elementor-post')
         
         if not article_containers:
-            print("❌ Errore nello scraping: Nessun contenitore articolo trovato con selettore specifico.")
-            return articles
+            print("❌ Errore nello scraping: Fallito il selettore container primario.")
+            # Tentativo con un selettore di fallback
+            article_containers = soup.find_all('div', class_=re.compile(r'elementor-post__card|post-card'))
+            if not article_containers:
+                 print("❌ Errore nello scraping: Fallito anche il selettore generico di card.")
+                 return articles
 
 
         for item in article_containers[:MAX_ARTICLES]:
             
-            # 1. Estrazione Link
-            # Il link è contenuto in un <a> che a sua volta contiene il titolo
-            a_tag = item.select_one('h3.elementor-post__title a')
+            # 1. Estrazione Link e Titolo
+            title_h3 = item.select_one('h3.elementor-post__title')
+            
+            # Cerca il tag <a> all'interno dell'h3 (contiene link e testo del titolo)
+            if title_h3:
+                a_tag = title_h3.find('a', href=True)
+            else:
+                 # Fallback: Cerchiamo l'elemento <a> più grande che copre l'articolo
+                 a_tag = item.select_one('a[href]')
+
+
             if not a_tag:
-                # Fallback: cerca un <a> generico nell'articolo
-                a_tag = item.select_one('a[href]')
-                if not a_tag:
-                    continue
+                continue
             
             link = a_tag['href']
             
-            # 2. Estrazione Titolo (più robusta)
+            # 2. Estrazione Titolo: Lo prendiamo direttamente dal testo del tag <a> principale
             title = a_tag.get_text().strip()
-            title = re.sub(r'\s+', ' ', title).strip()
             
+            # Pulizia e verifica finale
+            title = re.sub(r'\s+', ' ', title).strip()
+            # Se il titolo estratto è vuoto o solo un'azione ('Leggi tutto'), usa il fallback di emergenza
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
-                 # Cerco un tag titolo specifico se fallisce l'estrazione da <a>
-                 title_tag = item.select_one('h3.elementor-post__title')
-                 if title_tag:
-                     title = title_tag.get_text().strip()
-                 else:
-                     title = "Senza titolo (Fallback di emergenza)"
+                 title = "Senza titolo (ESTRAZIONE FALLITA)"
 
 
-            # 3. Estrazione Data (Selettore più specifico)
-            # La data è contenuta in un <span> all'interno di un <div> meta data
+            # 3. Estrazione Data
+            # Selettore specifico per i meta-dati del post
             date_tag = item.select_one('div.elementor-post__meta-data span.elementor-post-date')
             date_str = date_tag.get_text().strip() if date_tag else ""
             
@@ -74,3 +138,76 @@ def scraping_fallback():
         print(f"❌ Errore generico nello scraping: {e}")
         
     return articles
+
+# ----------------------------------------------------------------------
+# FUNZIONI DI SCRITTURA FILE
+# ----------------------------------------------------------------------
+def save_to_json(data):
+    """Salva i dati estratti nel file JSON."""
+    try:
+        with open(FEED_JSON_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        print(f"📝 Dati salvati con successo in {FEED_JSON_PATH}")
+    except Exception as e:
+        print(f"❌ Errore nel salvataggio del JSON: {e}")
+
+def update_index_html(articles):
+    """Aggiorna la sezione dei contenuti dinamici nel file index.html (logica anti-duplicazione)."""
+    
+    start_tag = ''
+    end_tag = ''
+
+    try:
+        with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except FileNotFoundError:
+        print(f"❌ Errore: {INDEX_HTML_PATH} non trovato. Impossibile aggiornare.")
+        return
+
+    # 1. Trova le posizioni dei tag
+    start_index = content.find(start_tag)
+    end_index = content.find(end_tag)
+
+    if start_index == -1 or end_index == -1:
+        print("⚠️ Attenzione: I tag di sostituzione dinamica non sono presenti in index.html.")
+        return
+
+    # 2. Crea il nuovo contenuto HTML
+    new_content_html = ""
+    for article in articles:
+        link = article["link"] if article["link"] else "#"
+        new_content_html += f'<li><a href="{link}" target="_blank">{article["title"]}</a> <small>({article["date"]})</small></li>\n'
+    
+    # 3. Costruisci il nuovo contenuto completo con la sostituzione sicura
+    updated_content = content[:start_index + len(start_tag)]
+    updated_content += "\n" + new_content_html.strip() + "\n"
+    updated_content += content[end_index:]
+
+    # 4. Scrivi il contenuto aggiornato
+    try:
+        with open(INDEX_HTML_PATH, 'w', encoding='utf-8') as f:
+            f.write(updated_content)
+        print(f"📝 {INDEX_HTML_PATH} aggiornato con successo.")
+    except Exception as e:
+        print(f"❌ Errore nella scrittura di {INDEX_HTML_PATH}: {e}")
+
+# ----------------------------------------------------------------------
+# FUNZIONE PRINCIPALE
+# ----------------------------------------------------------------------
+def main():
+    """Funzione principale per l'esecuzione."""
+    
+    articles = parse_rss()
+    
+    if not articles:
+        articles = scraping_fallback()
+
+    if articles:
+        save_to_json(articles)
+        update_index_html(articles)
+    else:
+        print("🔴 Nessun articolo estratto. I file non saranno modificati.")
+
+
+if __name__ == "__main__":
+    main()
