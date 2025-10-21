@@ -8,27 +8,25 @@ from itertools import chain
 
 # --- Configurazione Generale ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
-FALLBACK_URL = "https://sscnapoli.it/news/" # Sito ufficiale SSC Napoli (Fallback)
-
-# AUMENTATO IL LIMITE DI ARTICOLI PER FONTE (da 12 a 25)
+FALLBACK_URL = "https://sscnapoli.it/news/" 
 MAX_ARTICLES_PER_SOURCE = 25 
 FEED_JSON_PATH = 'feed.json'
 
-# --- URL dei Feed RSS di Terze Parti (Completo) ---
+# --- URL dei Feed RSS di Terze Parti ---
 THIRD_PARTY_FEEDS = {
-    # Giornali Sportivi (Generici/Napoli)
+    # Giornali Sportivi (Specifici/Generici)
     'Gazzetta dello Sport': 'https://www.gazzetta.it/rss/napoli.xml',
     'Corriere dello Sport': 'https://www.corrieredellosport.it/rss/napoli',
     'TuttoSport': 'https://www.tuttosport.com/rss/calcio/napoli',
     'CalcioMercato': 'https://www.calciomercato.com/feed/rss', 
     
-    # Emittenti TV/Streaming (Calcio/Generici)
+    # Emittenti TV/Streaming (Generici)
     'Sky Sport': 'https://sport.sky.it/rss/calcio.xml', 
     'DAZN Italia': 'https://media.dazn.com/it/news-it/rss.xml',
     'RAI Sport': 'https://www.rai.it/dl/RaiTV/rss/RaiSport_generico.xml'
 }
 
-# --- Parsing da Fonte Azzurra (Principale) ---
+# --- Parsing da Fonte Azzurra (Logica Invariata) ---
 def parse_rss_fonteazzurra():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
     try:
@@ -57,7 +55,7 @@ def parse_rss_fonteazzurra():
     except Exception:
         return []
 
-# --- Scraping di Fallback (Sito Ufficiale SSC Napoli) ---
+# --- Scraping di Fallback SSC Napoli (Logica Invariata) ---
 def scraping_fallback_sscnapoli():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
     articles = []
@@ -75,7 +73,6 @@ def scraping_fallback_sscnapoli():
             link = a_tag['href']
             title = re.sub(r'\s+', ' ', a_tag.get_text().strip()).strip()
             
-            # Pulizia duplicati nel titolo
             title_parts = title.split()
             mid_point = len(title_parts) // 2
             first_half = ' '.join(title_parts[:mid_point])
@@ -99,17 +96,21 @@ def scraping_fallback_sscnapoli():
     except Exception:
         return []
 
-# --- Aggregazione Interviste da Terze Parti ---
+# --- Aggregazione Interviste da Terze Parti (FILTRI RAFFORZATI) ---
 def search_third_party_interviews():
     """
-    Processa i feed RSS di terze parti, filtrando per pertinenza (Napoli e interviste/dichiarazioni).
+    Processa i feed RSS di terze parti, filtrando solo per INTERVISTE/DICHIARAZIONI di tesserati Napoli.
     """
     interview_articles = []
     
-    # Parole chiave per identificare interviste o dichiarazioni dirette
-    KEYWORD_FILTERS = ["parole", "intervista", "dichiarazioni", "ha detto"]
-    # Parole chiave per identificare il Napoli nei feed generici (Sky, DAZN, RAI, CalcioMercato)
-    NAPOLI_FILTERS = ["napoli", "azzurri", "osimen", "kvara", "conte", "di lorenzo"]
+    # Filtri per identificare dichiarazioni/interviste
+    KEYWORD_FILTERS = ["parole", "intervista", "dichiarazioni", "ha detto", "ha rivelato", "esclusiva", "conferenza"]
+    
+    # Nomi specifici per identificare i tesserati (aggiornare regolarmente questa lista!)
+    TESSERATI_FILTERS = ["napoli", "azzurri", "conte", "osimen", "kvaratskhelia", "di lorenzo", "mario rui", "raspadori", "calzona", "garcia", "adl", "de laurentiis"]
+    
+    # Feed già specifici sul Napoli: non richiedono di cercare la parola "Napoli", solo la dichiarazione.
+    NAPOLI_SPECIFIC_FEEDS = ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
 
     for source_name, feed_url in THIRD_PARTY_FEEDS.items():
         try:
@@ -117,29 +118,33 @@ def search_third_party_interviews():
             
             for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]:
                 title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
+                title_lower = title.lower()
                 
-                # Controllo 1: L'articolo contiene termini legati alle dichiarazioni?
-                has_interview_keywords = any(kw in title.lower() for kw in KEYWORD_FILTERS)
-
-                # Controllo 2: Se il feed è specifico sul Napoli (Gazzetta, Corriere, TuttoSport) o generico (gli altri)
-                is_napoli_specific_feed = source_name in ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
+                # Check 1: L'articolo ha termini di dichiarazione?
+                has_interview_keywords = any(kw in title_lower for kw in KEYWORD_FILTERS)
                 
-                is_relevant = has_interview_keywords
+                is_relevant = False
                 
-                # Se il feed non è specifico sul Napoli, applichiamo un filtro più rigoroso:
-                if not is_napoli_specific_feed:
-                    has_napoli_keywords = any(kw in title.lower() for kw in NAPOLI_FILTERS)
-                    # Deve essere un'intervista E sul Napoli
-                    is_relevant = has_interview_keywords and has_napoli_keywords
+                if source_name in NAPOLI_SPECIFIC_FEEDS:
+                    # Per i feed SPECIFICI sul Napoli, basta trovare la parola chiave di dichiarazione.
+                    is_relevant = has_interview_keywords
+                else:
+                    # Per i feed GENERICI (Sky, DAZN, RAI, CalcioMercato), è necessario:
+                    # 1. Parola chiave di dichiarazione.
+                    # 2. Almeno un nome di tesserato o la parola "Napoli".
+                    has_tesserati_keywords = any(kw in title_lower for kw in TESSERATI_FILTERS)
+                    is_relevant = has_interview_keywords and has_tesserati_keywords
 
                 # Applica il filtro e formatta l'articolo
                 if is_relevant:
                     date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
                     if date_str:
                         try:
+                            # Tenta di analizzare la data da feedparser
                             date_obj = datetime(*entry.published_parsed[:6])
                             formatted_date = date_obj.strftime("%d/%m/%Y")
                         except Exception:
+                            # Fallback a una data vuota se l'analisi fallisce
                             formatted_date = ""
                     else:
                         formatted_date = ""
@@ -151,7 +156,6 @@ def search_third_party_interviews():
                         'source': source_name
                     })
         except Exception as e:
-            # Stampa un avviso se un feed fallisce, ma continua con il successivo
             print(f"Errore nel processare il feed di {source_name}: {e}")
             continue 
             
@@ -162,10 +166,9 @@ def main():
     # 1. Raccolta da fonte principale
     official_articles = parse_rss_fonteazzurra()
     if not official_articles: 
-        # Fallback al sito ufficiale SSC Napoli se il feed primario fallisce
         official_articles = scraping_fallback_sscnapoli()
 
-    # 2. Raccolta da fonti terze (Interviste)
+    # 2. Raccolta da fonti terze (Interviste filtrate)
     interview_articles = search_third_party_interviews()
     
     # 3. Unione di tutte le liste
