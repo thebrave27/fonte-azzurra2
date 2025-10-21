@@ -13,10 +13,11 @@ import logging
 
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/"
-MAX_ARTICLES_PER_SOURCE = 100
+# Aumentato per raccogliere più dati passati (inizio stagione)
+MAX_ARTICLES_PER_SOURCE = 100 
 FEED_JSON_PATH = 'feed.json'
 
-# Limite temporale stagione 2025/26
+# Limite temporale stagione 2025/26 (1 Luglio 2025)
 SEASON_START = datetime(2025, 7, 1)
 
 # Configurazione logging
@@ -38,29 +39,54 @@ THIRD_PARTY_FEEDS = {
 }
 
 # ---------------------------
+# FUNZIONE DI UTILITY PER LA DATA
+# ---------------------------
+
+def parse_date_and_filter(entry, source_type):
+    """Estrae la data da un entry RSS/Scraping, la formatta e la filtra in base a SEASON_START."""
+    date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
+    date_obj = None
+    formatted_date = ""
+
+    if source_type == 'rss' and date_str:
+        try:
+            date_obj = datetime(*entry.published_parsed[:6])
+            formatted_date = date_obj.strftime("%d/%m/%Y")
+        except Exception:
+            # Fallback se il parsing RSS fallisce
+            pass
+    
+    elif source_type == 'scraping':
+        # Per lo scraping, il formato DD/MM/YYYY viene gestito più avanti
+        # Qui accettiamo la stringa iniziale non ancora formattata come datetime
+        if date_str:
+            try:
+                date_obj = datetime.strptime(date_str, "%d/%m/%Y")
+                formatted_date = date_str
+            except ValueError:
+                pass
+
+    # Filtro data: se la data è precedente all'inizio della stagione, scarta
+    if date_obj and date_obj < SEASON_START:
+        return None, None
+    
+    return date_obj, formatted_date if formatted_date else "Data Sconosciuta"
+
+
+# ---------------------------
 # PARSING FONTE AZZURRA
 # ---------------------------
 def parse_rss_fonteazzurra():
     logging.info("Analisi feed ufficiale Fonte Azzurra...")
+    entries = []
     try:
         feed = feedparser.parse(URL_FEED_AZZURRA)
-        entries = []
 
         for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]:
             title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
-            date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
-            formatted_date = ""
-            date_obj = None
-
-            if date_str:
-                try:
-                    date_obj = datetime(*entry.published_parsed[:6])
-                    formatted_date = date_obj.strftime("%d/%m/%Y")
-                except Exception:
-                    formatted_date = ""
-
-            # Filtro data
-            if date_obj and date_obj < SEASON_START:
+            
+            date_obj, formatted_date = parse_date_and_filter(entry, 'rss')
+            if date_obj is None and formatted_date is None: # Scartato dal filtro data
                 continue
 
             entries.append({
@@ -103,24 +129,19 @@ def scraping_fallback_sscnapoli():
             mid = len(title_parts) // 2
             if ' '.join(title_parts[:mid]) == ' '.join(title_parts[mid:]):
                 title = ' '.join(title_parts[:mid])
-            if not title:
+            if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                 title = "Senza titolo"
 
             date_tag = item.select_one('div.elementor-post__meta-data span.elementor-post-date')
+            
+            # Estrazione data in formato DD/MM/YYYY
             date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_tag.get_text().strip()) if date_tag else None
-            formatted_date = date_match.group(0) if date_match else ""
-            date_obj = None
-
-            if date_match:
-                try:
-                    date_obj = datetime.strptime(formatted_date, "%d/%m/%Y")
-                except ValueError:
-                    pass
-
-            # Filtro data
-            if date_obj and date_obj < SEASON_START:
+            date_str = date_match.group(0) if date_match else None
+            
+            date_obj, formatted_date = parse_date_and_filter({'date_str': date_str}, 'scraping')
+            if date_obj is None and formatted_date is None: # Scartato dal filtro data
                 continue
-
+            
             articles.append({
                 'title': title,
                 'link': link,
@@ -166,21 +187,24 @@ def search_third_party_interviews():
     ]
 
     NAPOLI_SPECIFIC_FEEDS = ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
+    
+    total_found = 0
 
     for source_name, feed_url in THIRD_PARTY_FEEDS.items():
         try:
             feed = feedparser.parse(feed_url)
-            logging.info(f"Analisi feed {source_name}... ({len(feed.entries)} articoli)")
-
+            
             for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]:
                 title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
                 title_lower = title.lower()
 
+                # Controllo Esclusione/Parole chiave Dichiarazioni
                 if any(ex in title_lower for ex in EXCLUSION_FILTERS):
                     continue
                 if not any(kw in title_lower for kw in KEYWORD_FILTERS):
                     continue
 
+                # Controllo Rilevanza Tesserati
                 if source_name in NAPOLI_SPECIFIC_FEEDS:
                     relevant = any(kw in title_lower for kw in ["napoli", "azzurri"] + TESSERATI_FILTERS)
                 else:
@@ -189,19 +213,9 @@ def search_third_party_interviews():
                 if not relevant:
                     continue
 
-                date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
-                date_obj = None
-                formatted_date = "Data Sconosciuta"
-
-                if date_str:
-                    try:
-                        date_obj = datetime(*entry.published_parsed[:6])
-                        formatted_date = date_obj.strftime("%d/%m/%Y")
-                    except Exception:
-                        pass
-
-                # Filtro temporale
-                if date_obj and date_obj < SEASON_START:
+                # Controllo Data e Filtro Temporale
+                date_obj, formatted_date = parse_date_and_filter(entry, 'rss')
+                if date_obj is None and formatted_date is None: # Scartato dal filtro data
                     continue
 
                 interview_articles.append({
@@ -210,12 +224,13 @@ def search_third_party_interviews():
                     'date': formatted_date,
                     'source': source_name
                 })
+                total_found += 1
 
         except Exception as e:
             logging.warning(f"Errore nel feed di {source_name}: {e}")
             continue
 
-    logging.info(f"Totale interviste valide stagione 25/26: {len(interview_articles)}")
+    logging.info(f"Totale interviste valide stagione 25/26: {total_found}")
     return interview_articles
 
 # ---------------------------
