@@ -15,6 +15,7 @@ INDEX_HTML_PATH = 'index.html'
 # --- Parsing e Scraping (Logica Invariata) ---
 def parse_rss():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
+    print("🔵 Avvio aggiornamento Fonte Azzurra...")
     try:
         feed = feedparser.parse(URL_FEED_AZZURRA)
         entries = []
@@ -32,12 +33,19 @@ def parse_rss():
                 formatted_date = ""
 
             entries.append({'title': title, 'link': entry.link, 'date': formatted_date, 'source': 'Fonte Azzurra'})
-        return entries if entries else None
-    except Exception:
+        if entries:
+            print(f"✅ Estratti {len(entries)} articoli da Fonte Azzurra.")
+            return entries
+        print("⚠️ Nessun articolo trovato nel feed RSS. Passaggio al fallback.")
+        return None
+    except Exception as e:
+        print(f"❌ Errore nel parsing RSS: {e}")
+        print("Passaggio al fallback.")
         return None
 
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
+    print(f"🧩 Fallback attivo: estraggo articoli dal sito SSC Napoli da {FALLBACK_URL}...")
     articles = []
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -68,14 +76,18 @@ def scraping_fallback():
             formatted_date = date_match.group(0) if date_match else ""
 
             articles.append({'title': title, 'link': link, 'date': formatted_date, 'source': 'SSC Napoli (Fallback)'})
+
+        print(f"✅ Estratti {len(articles)} articoli.")
         return articles
-    except Exception:
+    except Exception as e:
+        print(f"❌ Errore nello scraping: {e}")
         return []
 
-# --- Scrittura HTML (LOGICA AGGIORNATA) ---
+# --- Scrittura HTML (LOGICA AGGIORNATA per i nuovi marker e classi) ---
 def update_index_html(articles):
     """Aggiorna le due sezioni dei contenuti dinamici nel file index.html."""
     
+    # I marker devono corrispondere esattamente a quelli nel file index.html
     featured_start, featured_end = '', ''
     list_start, list_end = '', ''
 
@@ -89,10 +101,10 @@ def update_index_html(articles):
     featured_html = ""
     for article in articles[:3]:
         link = article["link"] if article["link"] else "#"
-        # Usa le classi per una card moderna
-        featured_html += f'<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">\n'
-        featured_html += f'  <a href="{link}" target="_blank" class="block group space-y-3">\n'
         date_display = article["date"] if article["date"] else ""
+        # Classi adattate al nuovo design
+        featured_html += f'<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-[1.01]">\n'
+        featured_html += f'  <a href="{link}" target="_blank" class="block group space-y-3">\n'
         featured_html += f'    <p class="text-sm font-semibold text-primary/70">{date_display} <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>\n'
         featured_html += f'    <h3 class="text-xl md:text-2xl font-bold text-napoli-white group-hover:text-primary transition-colors duration-200">{article["title"]}</h3>\n'
         featured_html += f'  </a>\n'
@@ -108,10 +120,11 @@ def update_index_html(articles):
     list_html = ""
     for article in articles[3:MAX_ARTICLES]:
         link = article["link"] if article["link"] else "#"
-        # Usa la griglia 1/4 (data/categoria) + 3/4 (titolo)
+        date_display = article["date"] if article["date"] else ""
+        # Classi adattate al nuovo design (griglia 1/4 + 3/4)
         list_html += f'<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">\n'
         list_html += f'  <div class="md:col-span-1">\n'
-        list_html += f'    <p class="text-sm text-napoli-white/60">{article["date"]}</p>\n'
+        list_html += f'    <p class="text-sm text-napoli-white/60">{date_display}</p>\n'
         list_html += f'    <p class="text-primary font-semibold text-sm">{article["source"]}</p>\n'
         list_html += f'  </div>\n'
         list_html += f'  <div class="md:col-span-3">\n'
@@ -134,15 +147,11 @@ def update_index_html(articles):
     try:
         with open(INDEX_HTML_PATH, 'w', encoding='utf-8') as f:
             f.write(final_content)
-    except Exception:
-        pass
+        print(f"📝 {INDEX_HTML_PATH} aggiornato con successo.")
+    except Exception as e:
+        print(f"❌ Errore nella scrittura di {INDEX_HTML_PATH}: {e}")
 
 # ----------------------------------------------------------------------
 def main():
     articles = parse_rss()
     if not articles: articles = scraping_fallback()
-    if articles: update_index_html(articles)
-# ----------------------------------------------------------------------
-
-if __name__ == "__main__":
-    main()
