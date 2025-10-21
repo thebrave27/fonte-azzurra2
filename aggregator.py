@@ -8,8 +8,10 @@ from itertools import chain
 
 # --- Configurazione Generale ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
-FALLBACK_URL = "https://sscnapoli.it/news/" # Sito ufficiale SSC Napoli
-MAX_ARTICLES_PER_SOURCE = 12 
+FALLBACK_URL = "https://sscnapoli.it/news/" # Sito ufficiale SSC Napoli (Fallback)
+
+# AUMENTATO IL LIMITE DI ARTICOLI PER FONTE (da 12 a 25)
+MAX_ARTICLES_PER_SOURCE = 25 
 FEED_JSON_PATH = 'feed.json'
 
 # --- URL dei Feed RSS di Terze Parti (Completo) ---
@@ -106,8 +108,8 @@ def search_third_party_interviews():
     
     # Parole chiave per identificare interviste o dichiarazioni dirette
     KEYWORD_FILTERS = ["parole", "intervista", "dichiarazioni", "ha detto"]
-    # Parole chiave per identificare il Napoli nei feed generici (Sky, DAZN, RAI)
-    NAPOLI_FILTERS = ["napoli", "azzurri", "spalletti", "conte", "osimen", "kvara"]
+    # Parole chiave per identificare il Napoli nei feed generici (Sky, DAZN, RAI, CalcioMercato)
+    NAPOLI_FILTERS = ["napoli", "azzurri", "osimen", "kvara", "conte", "di lorenzo"]
 
     for source_name, feed_url in THIRD_PARTY_FEEDS.items():
         try:
@@ -119,20 +121,18 @@ def search_third_party_interviews():
                 # Controllo 1: L'articolo contiene termini legati alle dichiarazioni?
                 has_interview_keywords = any(kw in title.lower() for kw in KEYWORD_FILTERS)
 
-                # Controllo 2: Se la fonte NON è specifica sul Napoli (es. CalcioMercato, Sky, DAZN, RAI),
-                # deve contenere anche termini specifici sul Napoli.
+                # Controllo 2: Se il feed è specifico sul Napoli (Gazzetta, Corriere, TuttoSport) o generico (gli altri)
                 is_napoli_specific_feed = source_name in ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
                 
                 is_relevant = has_interview_keywords
                 
-                # Se il feed non è specifico sul Napoli (es. CalcioMercato, Sky, DAZN, RAI Sport), 
-                # il titolo DEVE menzionare anche un termine relativo al Napoli/tesserati.
+                # Se il feed non è specifico sul Napoli, applichiamo un filtro più rigoroso:
                 if not is_napoli_specific_feed:
                     has_napoli_keywords = any(kw in title.lower() for kw in NAPOLI_FILTERS)
-                    # Rendiamo il filtro più rigido per i feed generici: deve essere un'intervista E sul Napoli
+                    # Deve essere un'intervista E sul Napoli
                     is_relevant = has_interview_keywords and has_napoli_keywords
 
-                # Applica il filtro
+                # Applica il filtro e formatta l'articolo
                 if is_relevant:
                     date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
                     if date_str:
