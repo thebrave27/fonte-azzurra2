@@ -77,7 +77,7 @@ def scraping_fallback():
 def update_index_html(articles):
     """Aggiorna la sezione unica dei contenuti dinamici nel file index.html."""
     
-    # Marker unico per tutti gli articoli (deve corrispondere all'index.html)
+    # QUESTI MARKS DEVONO ESSERE DEFINITI CORRETTAMENTE
     all_articles_start, all_articles_end = '', ''
 
     try:
@@ -112,9 +112,11 @@ def update_index_html(articles):
     start_index = updated_content.find(all_articles_start)
     end_index = updated_content.find(all_articles_end)
     
+    # La condizione ora è che entrambi i marker vengano trovati
     if start_index != -1 and end_index != -1:
         final_content = updated_content[:start_index + len(all_articles_start)] + "\n" + list_html.strip() + "\n" + updated_content[end_index:]
     else:
+        # Se i marker non vengono trovati, non aggiorniamo il file
         final_content = updated_content
 
     # 2. Scrivi il contenuto aggiornato
