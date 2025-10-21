@@ -8,7 +8,7 @@ import re
 # --- Configurazione ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/"
-MAX_ARTICLES = 15 # Numero massimo di articoli da mostrare
+MAX_ARTICLES = 15 
 FEED_JSON_PATH = 'feed.json'
 INDEX_HTML_PATH = 'index.html'
 
@@ -67,32 +67,23 @@ def scraping_fallback():
             date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_tag.get_text().strip()) if date_tag else None
             formatted_date = date_match.group(0) if date_match else ""
 
-            # La fonte è SSC Napoli (Fallback) e verrà pulita in fase di generazione HTML
             articles.append({'title': title, 'link': link, 'date': formatted_date, 'source': 'SSC Napoli (Fallback)'}) 
         return articles
     except Exception:
         return []
 
-# --- Scrittura HTML (LOGICA AGGIORNATA PER LISTA UNICA) ---
+# --- Scrittura HTML (LOGICA AGGIORNATA: SOSTITUZIONE BASATA SULL'ID DEL DIV) ---
 def update_index_html(articles):
     """Aggiorna la sezione unica dei contenuti dinamici nel file index.html."""
     
-    # QUESTI MARKS DEVONO ESSERE DEFINITI CORRETTAMENTE
-    all_articles_start, all_articles_end = '', ''
-
-    try:
-        with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f: content = f.read()
-    except FileNotFoundError: return
-        
-    updated_content = content
-
+    # Marcatori basati sull'ID del DIV in index.html
+    div_id = 'all-articles'
+    
     # 1. GENERATE ALL ARTICLES CONTENT (Lista Unica)
     list_html = ""
     for article in articles:
         link = article["link"] if article["link"] else "#"
         date_display = article["date"] if article["date"] else ""
-        
-        # Rimuove "(Fallback)" dalla fonte, come richiesto
         source_display = article["source"].replace(" (Fallback)", "") 
 
         # Layout griglia pulito: Data/Fonte su 1/4, Titolo su 3/4
@@ -108,18 +99,47 @@ def update_index_html(articles):
         list_html += f'  </div>\n'
         list_html += f'</div>\n'
 
-    # Sostituzione per il blocco UNICO
-    start_index = updated_content.find(all_articles_start)
-    end_index = updated_content.find(all_articles_end)
-    
-    # La condizione ora è che entrambi i marker vengano trovati
-    if start_index != -1 and end_index != -1:
-        final_content = updated_content[:start_index + len(all_articles_start)] + "\n" + list_html.strip() + "\n" + updated_content[end_index:]
-    else:
-        # Se i marker non vengono trovati, non aggiorniamo il file
-        final_content = updated_content
+    # 2. Leggi il contenuto e trova il blocco da sostituire
+    try:
+        with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f: 
+            content = f.read()
+    except FileNotFoundError: 
+        return
 
-    # 2. Scrivi il contenuto aggiornato
+    # Troviamo l'inizio e la fine del div in base all'ID per una sostituzione sicura.
+    start_tag = f'<div id="{div_id}" class="space-y-2">'
+    end_tag = '</div>' # Chiude il div con id="all-articles"
+    
+    start_index = content.find(start_tag)
+    
+    if start_index == -1:
+        # Fallback alla sostituzione con marker se l'ID non è stato trovato (molto improbabile ora)
+        start_marker = ''
+        end_marker = ''
+        start_index = content.find(start_marker)
+        end_index = content.find(end_marker)
+        
+        if start_index != -1 and end_index != -1:
+            final_content = content[:start_index + len(start_marker)] + "\n" + list_html.strip() + "\n" + content[end_index:]
+        else:
+            return # Nessun punto di inserimento trovato
+
+    else:
+        # Se l'ID è stato trovato, cerchiamo il tag di chiusura di quel div specifico.
+        # Partiamo da DOPO il tag iniziale per evitare di trovare il tag di chiusura troppo presto.
+        content_after_start = content[start_index + len(start_tag):]
+        end_index_relative = content_after_start.find(end_tag)
+
+        if end_index_relative != -1:
+            # Calcoliamo l'indice assoluto della fine del div
+            end_index_absolute = start_index + len(start_tag) + end_index_relative
+            
+            # Sostituiamo il contenuto tra il tag iniziale e il tag finale del DIV
+            final_content = content[:start_index + len(start_tag)] + "\n" + list_html.strip() + "\n" + content[end_index_absolute:]
+        else:
+            return # Tag di chiusura non trovato
+
+    # 3. Scrivi il contenuto aggiornato
     try:
         with open(INDEX_HTML_PATH, 'w', encoding='utf-8') as f:
             f.write(final_content)
