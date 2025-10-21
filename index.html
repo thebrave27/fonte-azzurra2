@@ -1,70 +1,3 @@
-
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/beukema-emozione-speciale-tornare-in-olanda-ci-aspetta-un-match-molto-impegnativo/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">Beukema: “Emozione speciale tornare in Olanda, ci aspetta un mat... Beukema: “Emozione speciale tornare in Olanda, ci aspetta un match molto impegnativo”</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/ssc-napoli-training-center-il-report-dellallenamento-di-oggi-11/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">SSC Napoli Training Center | Il report dell’allenamento di oggi</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/giuseppe-ambrosino-con-noi-fino-al-2030/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">Giuseppe Ambrosino con noi fino al 2030!</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/antonio-vergara-con-noi-fino-al-2030/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">Antonio Vergara con noi fino al 2030!</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/ssc-napoli-training-center-il-report-della-seduta-odierna-15/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">SSC Napoli Training Center | Il report della seduta odierna</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/psv-napoli-arbitra-siebert/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">PSV-Napoli: arbitra Siebert</h3>
-    </a>
-  </div>
-</div>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,13 +10,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
 <script>
         tailwind.config = {
-            darkMode: "class",
+            // Assicuriamo che darkMode sia impostato correttamente
+            darkMode: "class", 
             theme: {
                 extend: {
                     colors: {
                         "primary": "#0b73da",
                         "background-light": "#f5f7f8",
                         "background-dark": "#101922",
+                        // Colori aggiuntivi per il tema Napoli
+                        "napoli-blue": "#0032A0", 
+                        "napoli-white": "#f5f7f8", 
+                        "napoli-card": "#1c2a37",
                     },
                     fontFamily: {
                         "display": ["Public Sans"]
@@ -102,9 +40,14 @@
         .gradient-overlay {
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 40%);
         }
+        /* Forza l'uso del tema scuro per l'aspetto desiderato (blu scuro) */
+        body {
+            /* Classe dark applicata al body per forzare il tema scuro */
+            @apply dark; 
+        }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display">
+<body class="bg-background-light dark:bg-background-dark font-display dark"> 
 <div class="relative flex min-h-screen w-full flex-col">
 <header class="bg-background-light dark:bg-background-dark/80 sticky top-0 z-20 backdrop-blur-sm border-b border-background-dark/10 dark:border-background-light/10">
 <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,7 +85,7 @@
 </div>
 </div>
 <div class="grid gap-8 mb-12">
-<a class="group block bg-background-light dark:bg-background-dark rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300" href="#">
+<a class="group block bg-background-light dark:bg-napoli-card rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300" href="#">
 <div class="grid md:grid-cols-2 gap-4">
 <div class="p-6 flex flex-col justify-center">
 <p class="text-primary font-semibold text-sm mb-1">Esclusiva</p>
@@ -191,7 +134,6 @@
 <div id="all-articles" class="space-y-2">
     </div>
 </div>
-
 </div>
 </main>
 <footer class="bg-background-light dark:bg-background-dark mt-auto border-t border-background-dark/10 dark:border-background-light/10">
