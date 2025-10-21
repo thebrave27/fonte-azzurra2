@@ -8,7 +8,7 @@ import re
 # --- Configurazione ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/"
-MAX_ARTICLES = 15 
+MAX_ARTICLES = 15 # Numero massimo di articoli da mostrare
 FEED_JSON_PATH = 'feed.json'
 INDEX_HTML_PATH = 'index.html'
 
@@ -72,18 +72,28 @@ def scraping_fallback():
     except Exception:
         return []
 
-# --- Scrittura HTML (LOGICA AGGIORNATA: SOSTITUZIONE BASATA SULL'ID DEL DIV) ---
+# --- Scrittura HTML (LOGICA AGGIORNATA: REPLACEMENT BASATO SU REGEX) ---
 def update_index_html(articles):
-    """Aggiorna la sezione unica dei contenuti dinamici nel file index.html."""
+    """Aggiorna la sezione unica dei contenuti dinamici nel file index.html usando una sostituzione sicura."""
     
-    # Marcatori basati sull'ID del DIV in index.html
-    div_id = 'all-articles'
-    
+    # Marcatori unici e corretti.
+    all_articles_start, all_articles_end = '', ''
+
+    try:
+        with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f: 
+            content = f.read()
+    except FileNotFoundError: 
+        return
+        
+    updated_content = content
+
     # 1. GENERATE ALL ARTICLES CONTENT (Lista Unica)
     list_html = ""
     for article in articles:
         link = article["link"] if article["link"] else "#"
         date_display = article["date"] if article["date"] else ""
+        
+        # Rimuove "(Fallback)" dalla fonte, come richiesto
         source_display = article["source"].replace(" (Fallback)", "") 
 
         # Layout griglia pulito: Data/Fonte su 1/4, Titolo su 3/4
@@ -99,45 +109,17 @@ def update_index_html(articles):
         list_html += f'  </div>\n'
         list_html += f'</div>\n'
 
-    # 2. Leggi il contenuto e trova il blocco da sostituire
-    try:
-        with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f: 
-            content = f.read()
-    except FileNotFoundError: 
-        return
-
-    # Troviamo l'inizio e la fine del div in base all'ID per una sostituzione sicura.
-    start_tag = f'<div id="{div_id}" class="space-y-2">'
-    end_tag = '</div>' # Chiude il div con id="all-articles"
+    # 2. SOSTITUZIONE SICURA CON REGEX
     
-    start_index = content.find(start_tag)
+    # Compila l'espressione regolare per cercare: START marker, seguito da qualsiasi contenuto (non greedy), fino a END marker.
+    # re.DOTALL permette a '.' di includere i caratteri di a capo, essenziale per HTML multiline.
+    pattern = re.compile(rf'{re.escape(all_articles_start)}.*?{re.escape(all_articles_end)}', re.DOTALL)
     
-    if start_index == -1:
-        # Fallback alla sostituzione con marker se l'ID non è stato trovato (molto improbabile ora)
-        start_marker = ''
-        end_marker = ''
-        start_index = content.find(start_marker)
-        end_index = content.find(end_marker)
-        
-        if start_index != -1 and end_index != -1:
-            final_content = content[:start_index + len(start_marker)] + "\n" + list_html.strip() + "\n" + content[end_index:]
-        else:
-            return # Nessun punto di inserimento trovato
-
-    else:
-        # Se l'ID è stato trovato, cerchiamo il tag di chiusura di quel div specifico.
-        # Partiamo da DOPO il tag iniziale per evitare di trovare il tag di chiusura troppo presto.
-        content_after_start = content[start_index + len(start_tag):]
-        end_index_relative = content_after_start.find(end_tag)
-
-        if end_index_relative != -1:
-            # Calcoliamo l'indice assoluto della fine del div
-            end_index_absolute = start_index + len(start_tag) + end_index_relative
-            
-            # Sostituiamo il contenuto tra il tag iniziale e il tag finale del DIV
-            final_content = content[:start_index + len(start_tag)] + "\n" + list_html.strip() + "\n" + content[end_index_absolute:]
-        else:
-            return # Tag di chiusura non trovato
+    # Definisci la stringa di rimpiazzo: i due marker (mantenuti) + il contenuto HTML degli articoli.
+    replacement = f'{all_articles_start}\n{list_html.strip()}\n{all_articles_end}'
+    
+    # Esegui la sostituzione: il re.sub sostituisce l'intero blocco trovato (marker+vecchio contenuto) con la stringa di replacement.
+    final_content = pattern.sub(replacement, updated_content)
 
     # 3. Scrivi il contenuto aggiornato
     try:
