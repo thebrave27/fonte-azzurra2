@@ -9,6 +9,8 @@ from itertools import chain
 # --- Configurazione Generale ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/" 
+
+# LIMITE DI ARTICOLI PER FONTE (25 come richiesto)
 MAX_ARTICLES_PER_SOURCE = 25 
 FEED_JSON_PATH = 'feed.json'
 
@@ -96,20 +98,24 @@ def scraping_fallback_sscnapoli():
     except Exception:
         return []
 
-# --- Aggregazione Interviste da Terze Parti (FILTRI RAFFORZATI) ---
+# --- Aggregazione Interviste da Terze Parti (FILTRI ULTRA-RESTRITTIVI) ---
 def search_third_party_interviews():
     """
-    Processa i feed RSS di terze parti, filtrando solo per INTERVISTE/DICHIARAZIONI di tesserati Napoli.
+    Processa i feed RSS di terze parti, filtrando per dichiarazioni/interviste esclusive dei tesserati Napoli.
     """
     interview_articles = []
     
-    # Filtri per identificare dichiarazioni/interviste
-    KEYWORD_FILTERS = ["parole", "intervista", "dichiarazioni", "ha detto", "ha rivelato", "esclusiva", "conferenza"]
+    # Filtri per identificare dichiarazioni/interviste (più specifici)
+    KEYWORD_FILTERS = ["intervista", "parole di", "dichiarazioni di", "ha detto", "ha parlato", "esclusiva", "conferenza stampa", "post-partita", "l'intervista", "la conferenza", "parole forti"]
     
-    # Nomi specifici per identificare i tesserati (aggiornare regolarmente questa lista!)
-    TESSERATI_FILTERS = ["napoli", "azzurri", "conte", "osimen", "kvaratskhelia", "di lorenzo", "mario rui", "raspadori", "calzona", "garcia", "adl", "de laurentiis"]
+    # Nomi/Titoli dei tesserati (concentrati su figure chiave per il 2025/26)
+    TESSERATI_FILTERS = [
+        "conte", "de laurentiis", "kvaratskhelia", "osimen", 
+        "di lorenzo", "raspadori", "meret", "politano", "cajuste", 
+        "mister", "presidente", "adl", "dirigente"
+    ]
     
-    # Feed già specifici sul Napoli: non richiedono di cercare la parola "Napoli", solo la dichiarazione.
+    # Feed già specifici sul Napoli
     NAPOLI_SPECIFIC_FEEDS = ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
 
     for source_name, feed_url in THIRD_PARTY_FEEDS.items():
@@ -126,12 +132,13 @@ def search_third_party_interviews():
                 is_relevant = False
                 
                 if source_name in NAPOLI_SPECIFIC_FEEDS:
-                    # Per i feed SPECIFICI sul Napoli, basta trovare la parola chiave di dichiarazione.
-                    is_relevant = has_interview_keywords
+                    # Per i feed SPECIFICI sul Napoli, è necessario che il titolo indichi una dichiarazione E menzioni Napoli/Azzurri
+                    has_napoli_or_tesserato = any(kw in title_lower for kw in ["napoli", "azzurri"] + TESSERATI_FILTERS)
+                    is_relevant = has_interview_keywords and has_napoli_or_tesserato
                 else:
                     # Per i feed GENERICI (Sky, DAZN, RAI, CalcioMercato), è necessario:
                     # 1. Parola chiave di dichiarazione.
-                    # 2. Almeno un nome di tesserato o la parola "Napoli".
+                    # 2. Il nome di un Tesserato specifico (più restrittivo di prima).
                     has_tesserati_keywords = any(kw in title_lower for kw in TESSERATI_FILTERS)
                     is_relevant = has_interview_keywords and has_tesserati_keywords
 
@@ -140,14 +147,12 @@ def search_third_party_interviews():
                     date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
                     if date_str:
                         try:
-                            # Tenta di analizzare la data da feedparser
                             date_obj = datetime(*entry.published_parsed[:6])
                             formatted_date = date_obj.strftime("%d/%m/%Y")
                         except Exception:
-                            # Fallback a una data vuota se l'analisi fallisce
-                            formatted_date = ""
+                            formatted_date = "Data Sconosciuta"
                     else:
-                        formatted_date = ""
+                        formatted_date = "Data Sconosciuta"
 
                     interview_articles.append({
                         'title': title, 
