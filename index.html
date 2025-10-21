@@ -56,7 +56,7 @@
 
 <main class="flex-1 container mx-auto px-4 py-8 lg:py-12">
     
-    <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Ultime Notizie Aggregate</h2>
+    <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Ultime 20 Notizie (Dichiarazioni Tesserati)</h2>
 
     <div id="all-articles" class="space-y-2">
         <p class="text-napoli-white/60 text-center py-8">Caricamento notizie...</p>
@@ -73,15 +73,16 @@
 </div>
 
 <script>
+const MAX_HOME_ARTICLES = 20; // Limite richiesto per la homepage
+
 fetch('feed.json')
     .then(response => response.json())
     .then(data => {
         const container = document.getElementById('all-articles');
-        container.innerHTML = ''; // Pulisce il messaggio di caricamento iniziale
+        container.innerHTML = ''; 
 
-        // Ordina dal più recente al più vecchio
+        // 1. Ordinamento: dal più recente al più vecchio
         data.sort((a, b) => {
-            // Converte la data DD/MM/YYYY in formato YYYYMMDD per un confronto corretto
             const dateToComparable = (dateStr) => {
                 if (!dateStr || dateStr.length !== 10) return '00000000';
                 const parts = dateStr.split('/');
@@ -91,12 +92,15 @@ fetch('feed.json')
             const da = dateToComparable(a.date);
             const db = dateToComparable(b.date);
             
-            // Ordina in modo decrescente (db > da)
             return db.localeCompare(da); 
         });
 
-        // Genera l'HTML per ogni articolo
-        data.forEach(article => {
+        // 2. Limite: Prendiamo solo le prime MAX_HOME_ARTICLES
+        const limitedData = data.slice(0, MAX_HOME_ARTICLES);
+
+
+        // 3. Genera l'HTML per gli articoli limitati
+        limitedData.forEach(article => {
             const sourceClean = article.source.replace(" (Fallback)", "");
             
             const item = `
@@ -114,8 +118,7 @@ fetch('feed.json')
             container.insertAdjacentHTML('beforeend', item);
         });
         
-        // Se non ci sono articoli
-        if (data.length === 0) {
+        if (limitedData.length === 0) {
             container.innerHTML = '<p class="text-napoli-white/60 text-center py-8">Nessuna notizia disponibile al momento.</p>';
         }
     })
