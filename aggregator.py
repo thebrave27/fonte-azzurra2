@@ -72,11 +72,10 @@ def scraping_fallback():
     except Exception:
         return []
 
-# --- Scrittura HTML (LOGICA AGGIORNATA: REPLACEMENT BASATO SU REGEX) ---
+# --- Scrittura HTML (LOGICA AGGIORNATA: REGEX NON-AVIDA PER EVITARE DOPPIA INIEZIONE) ---
 def update_index_html(articles):
     """Aggiorna la sezione unica dei contenuti dinamici nel file index.html usando una sostituzione sicura."""
     
-    # Marcatori unici e corretti.
     all_articles_start, all_articles_end = '', ''
 
     try:
@@ -92,11 +91,8 @@ def update_index_html(articles):
     for article in articles:
         link = article["link"] if article["link"] else "#"
         date_display = article["date"] if article["date"] else ""
-        
-        # Rimuove "(Fallback)" dalla fonte, come richiesto
         source_display = article["source"].replace(" (Fallback)", "") 
 
-        # Layout griglia pulito: Data/Fonte su 1/4, Titolo su 3/4
         list_html += f'<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">\n'
         list_html += f'  <div class="md:col-span-1">\n'
         list_html += f'    <p class="text-sm text-napoli-white/60">{date_display}</p>\n'
@@ -111,16 +107,22 @@ def update_index_html(articles):
 
     # 2. SOSTITUZIONE SICURA CON REGEX
     
-    # Compila l'espressione regolare per cercare: START marker, seguito da qualsiasi contenuto (non greedy), fino a END marker.
-    # re.DOTALL permette a '.' di includere i caratteri di a capo, essenziale per HTML multiline.
+    # Questa regex non è avida (aggiungendo '?' dopo '*') e cerca il blocco tra i marker.
+    # Questo è lo standard per sostituire un blocco di codice in HTML/XML in modo sicuro.
     pattern = re.compile(rf'{re.escape(all_articles_start)}.*?{re.escape(all_articles_end)}', re.DOTALL)
     
-    # Definisci la stringa di rimpiazzo: i due marker (mantenuti) + il contenuto HTML degli articoli.
+    # La stringa di rimpiazzo (marker di inizio + nuovo contenuto + marker di fine)
     replacement = f'{all_articles_start}\n{list_html.strip()}\n{all_articles_end}'
     
-    # Esegui la sostituzione: il re.sub sostituisce l'intero blocco trovato (marker+vecchio contenuto) con la stringa di replacement.
-    final_content = pattern.sub(replacement, updated_content)
+    # Esegui la sostituzione. Il count=1 assicura che solo la PRIMA OCCORRENZA sia sostituita.
+    # Questo è un modo per prevenire l'iniezione indesiderata se i marker sono duplicati.
+    final_content, count = pattern.subn(replacement, updated_content, count=1)
 
+    # Se non è stata trovata nessuna corrispondenza (count=0), proviamo a fare una sostituzione globale,
+    # altrimenti assumiamo che il problema sia nella prima occorrenza indesiderata e non facciamo nulla.
+    if count == 0:
+        final_content = pattern.sub(replacement, updated_content)
+    
     # 3. Scrivi il contenuto aggiornato
     try:
         with open(INDEX_HTML_PATH, 'w', encoding='utf-8') as f:
