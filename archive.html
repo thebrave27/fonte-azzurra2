@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archivio Notizie SSC Napoli - Fonte Azzurra</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'primary': '#A9CCE3',        /* Azzurro Chiaro (Highlight/Testo principale) */
+                    'background-dark': '#032B56',  /* Blu Scuro (Sfondo) */
+                    'napoli-card': '#05386B',    /* Blu Scheda Articolo */
+                    'napoli-white': '#ffffff',
+                },
+                fontFamily: {
+                    'sans': ['Montserrat', 'sans-serif'],
+                },
+            },
+        },
+    }
+</script>
+
+<style>
+    /* Applicazione degli stili base */
+    body { 
+        background-color: #032B56; 
+        color: #ffffff; 
+        font-family: 'Montserrat', sans-serif; 
+    }
+    .container { 
+        max-width: 1200px; 
+        margin-left: auto; 
+        margin-right: auto; 
+    }
+</style>
+</head>
+<body class="bg-background-dark font-sans">
+<div class="relative flex min-h-screen w-full flex-col">
+
+<header class="py-8 border-b-2 border-napoli-white/20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
+        <nav class="mt-3">
+            <a href="index.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">HOME</a> | 
+            <a href="archive.html" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">ARCHIVIO</a>
+        </nav>
+    </div>
+</header>
+
+<main class="flex-1 container mx-auto px-4 py-8 lg:py-12">
+    
+    <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Archivio Completo Notizie</h2>
+
+    <div id="archive-articles" class="space-y-2">
+        <p class="text-napoli-white/60 text-center py-8">Caricamento archivio...</p>
+    </div>
+    
+    <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-8">
+        </div>
+</main>
+
+<footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
+    <div class="container mx-auto px-4 py-6 text-center text-sm text-napoli-white/60">
+        <p>Fonte Azzurra - Aggregatore indipendente di notizie sulla SSC Napoli.</p>
+        <p class="mt-1">Archivio. Non affiliato alla SSC Napoli S.p.A.</p>
+    </div>
+</footer>
+
+</div>
+
+<script>
+const ARTICLES_PER_PAGE = 25; // Impostiamo a 25 come richiesto
+let allData = [];
+let currentPage = 1;
+
+function renderArticles(data, page) {
+    const container = document.getElementById('archive-articles');
+    container.innerHTML = '';
+    
+    const start = (page - 1) * ARTICLES_PER_PAGE;
+    const end = start + ARTICLES_PER_PAGE;
+    const articlesToShow = data.slice(start, end);
+
+    articlesToShow.forEach(article => {
+        const sourceClean = article.source.replace(" (Fallback)", "");
+        const item = `
+        <div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
+            <div class="md:col-span-1">
+                <p class="text-sm text-napoli-white/60">${article.date || 'Data Sconosciuta'}</p>
+                <p class="text-primary font-semibold text-sm">${sourceClean}</p>
+            </div>
+            <div class="md:col-span-3">
+                <a class="group block" href="${article.link || '#'}" target="_blank">
+                    <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">${article.title}</h3>
+                </a>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', item);
+    });
+}
+
+function renderPaginationControls(data) {
+    const controlsContainer = document.getElementById('pagination-controls');
+    controlsContainer.innerHTML = '';
+    
+    const totalPages = Math.ceil(data.length / ARTICLES_PER_PAGE);
+
+    if (totalPages <= 1) return;
+
+    // Bottone Precedente
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Precedente';
+    prevButton.className = `px-4 py-2 rounded font-bold transition-colors ${
+        currentPage === 1 ? 'bg-napoli-card text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white'
+    }`;
+    prevButton.disabled = currentPage === 1;
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderArticles(allData, currentPage);
+            renderPaginationControls(allData);
+            window.scrollTo(0, 0); // Torna in cima alla pagina
+        }
+    };
+    controlsContainer.appendChild(prevButton);
+
+    // Indicatore Pagina
+    const pageIndicator = document.createElement('span');
+    pageIndicator.textContent = `Pagina ${currentPage} di ${totalPages}`;
+    pageIndicator.className = 'text-lg font-semibold text-napoli-white';
+    controlsContainer.appendChild(pageIndicator);
+    
+    // Bottone Successivo
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Successivo';
+    nextButton.className = `px-4 py-2 rounded font-bold transition-colors ${
+        currentPage === totalPages ? 'bg-napoli-card text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white'
+    }`;
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderArticles(allData, currentPage);
+            renderPaginationControls(allData);
+            window.scrollTo(0, 0); // Torna in cima alla pagina
+        }
+    };
+    controlsContainer.appendChild(nextButton);
+}
+
+
+fetch('feed.json')
+    .then(response => response.json())
+    .then(data => {
+        // Ordina tutti i dati dal più recente al più vecchio
+        data.sort((a, b) => {
+            const dateToComparable = (dateStr) => {
+                if (!dateStr || dateStr.length !== 10) return '00000000';
+                const parts = dateStr.split('/');
+                return parts[2] + parts[1] + parts[0];
+            };
+            
+            const da = dateToComparable(a.date);
+            const db = dateToComparable(b.date);
+            
+            return db.localeCompare(da); 
+        });
+        
+        allData = data; // Salva tutti i dati
+        renderArticles(allData, currentPage);
+        renderPaginationControls(allData);
+        
+        if (data.length === 0) {
+            document.getElementById('archive-articles').innerHTML = '<p class="text-napoli-white/60 text-center py-8">Nessuna notizia disponibile nell\'archivio.</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Errore nel caricamento del feed:', error);
+        document.getElementById('archive-articles').innerHTML = 
+            '<p class="text-napoli-white/60 text-center py-8">Impossibile caricare l\'archivio notizie al momento. Riprova più tardi.</p>';
+        document.getElementById('pagination-controls').innerHTML = '';
+    });
+</script>
+
+</body>
+</html>
