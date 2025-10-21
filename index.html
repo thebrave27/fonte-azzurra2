@@ -1,133 +1,62 @@
-
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/antonio-vergara-con-noi-fino-al-2030/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">Antonio Vergara con noi fino al 2030!</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/ssc-napoli-training-center-il-report-della-seduta-odierna-15/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">SSC Napoli Training Center | Il report della seduta odierna</h3>
-    </a>
-  </div>
-</div>
-<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-  <div class="md:col-span-1">
-    <p class="text-sm text-napoli-white/60"></p>
-    <p class="text-primary font-semibold text-sm">SSC Napoli</p>
-  </div>
-  <div class="md:col-span-3">
-    <a class="group block" href="https://sscnapoli.it/psv-napoli-arbitra-siebert/" target="_blank">
-      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">PSV-Napoli: arbitra Siebert</h3>
-    </a>
-  </div>
-</div>
-
-<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-[1.01]">
-  <a href="https://sscnapoli.it/beukema-emozione-speciale-tornare-in-olanda-ci-aspetta-un-match-molto-impegnativo/" target="_blank" class="block group space-y-3">
-    <p class="text-sm font-semibold text-primary/70"> <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>
-    <h3 class="text-xl md:text-2xl font-bold text-napoli-white group-hover:text-primary transition-colors duration-200">Beukema: “Emozione speciale tornare in Olanda, ci aspetta un mat... Beukema: “Emozione speciale tornare in Olanda, ci aspetta un match molto impegnativo”</h3>
-  </a>
-</div>
-<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-[1.01]">
-  <a href="https://sscnapoli.it/ssc-napoli-training-center-il-report-dellallenamento-di-oggi-11/" target="_blank" class="block group space-y-3">
-    <p class="text-sm font-semibold text-primary/70"> <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>
-    <h3 class="text-xl md:text-2xl font-bold text-napoli-white group-hover:text-primary transition-colors duration-200">SSC Napoli Training Center | Il report dell’allenamento di oggi</h3>
-  </a>
-</div>
-<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:scale-[1.01]">
-  <a href="https://sscnapoli.it/giuseppe-ambrosino-con-noi-fino-al-2030/" target="_blank" class="block group space-y-3">
-    <p class="text-sm font-semibold text-primary/70"> <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>
-    <h3 class="text-xl md:text-2xl font-bold text-napoli-white group-hover:text-primary transition-colors duration-200">Giuseppe Ambrosino con noi fino al 2030!</h3>
-  </a>
-</div>
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fonte Azzurra - Comunicati Ufficiali SSC Napoli</title>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"/>
 
 <script>
-    // Configurazione Tailwind adattata con i tuoi colori
-    tailwind.config = {
-        darkMode: "class",
-        theme: {
-            extend: {
-                colors: {
-                    // Colori Napoli
-                    'primary': '#A9CCE3',        /* Azzurro Chiaro (Highlight/Testo principale) */
-                    'background-dark': '#032B56',  /* Blu Scuro (Sfondo) */
-                    'napoli-card': '#05386B',    /* Blu Scheda Articolo */
-                    'napoli-white': '#ffffff',
-                },
-                fontFamily: {
-                    'sans': ['Montserrat', 'sans-serif'],
-                },
-                borderRadius: {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                },
-            },
-        },
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#A9CCE3',
+        dark: '#032B56',
+        card: '#05386B',
+        white: '#ffffff'
+      },
+      fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+      }
     }
+  }
+}
 </script>
 
 <style>
-    /* Stili Base: usa i colori personalizzati */
-    body { background-color: #032B56; color: #ffffff; font-family: 'Montserrat', sans-serif; }
-    .container { max-width: 1200px; margin-left: auto; margin-right: auto; }
+body {
+  background-color: #032B56;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
 </style>
 </head>
-<body class="bg-background-dark font-sans">
-<div class="relative flex min-h-screen w-full flex-col">
 
-<header class="py-5 border-b-2 border-napoli-white/20">
-    <div class="container mx-auto px-4 text-center">
-        <h1 class="text-3xl font-bold text-napoli-white">Fonte Azzurra</h1>
-        <nav class="mt-2">
-            <a href="?lang=it" class="text-napoli-white mx-2 hover:text-primary font-bold transition-colors">IT</a> | 
-            <a href="?lang=en" class="text-napoli-white mx-2 hover:text-primary font-bold transition-colors">EN</a>
-        </nav>
-    </div>
+<body class="bg-dark text-white">
+<header class="text-center py-8 border-b border-primary/40">
+  <h1 class="text-4xl font-bold">Fonte Azzurra</h1>
+  <nav class="mt-3">
+    <a href="?lang=it" class="text-white hover:text-primary font-semibold">IT</a>
+    <span class="mx-1 text-primary">|</span>
+    <a href="?lang=en" class="text-white hover:text-primary font-semibold">EN</a>
+  </nav>
 </header>
 
-<main class="flex-1 container mx-auto px-4 py-8 lg:py-12">
-    <div class="mb-12">
-        <h2 class="text-2xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-6">In Evidenza</h2>
-        <div id="featured-articles" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            </div>
-    </div>
-    
-    <div class="py-8 border-t border-napoli-white/20">
-        <h2 class="text-2xl font-bold text-napoli-white mb-6">Tutte le Notizie</h2>
-        <div id="full-articles" class="space-y-4">
-            </div>
-    </div>
+<main class="container px-4 py-8">
+  <h2 class="text-2xl font-bold border-b border-primary pb-2 mb-6">Tutte le Notizie</h2>
+  <div id="all-articles" class="space-y-4"></div>
 </main>
 
-<footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
-    <div class="container mx-auto px-4 py-6 text-center text-sm text-napoli-white/60">
-        <p>Fonte Azzurra - Contenuti ufficiali SSC Napoli.</p>
-        <p class="mt-1">Non affiliato alla SSC Napoli S.p.A.</p>
-    </div>
+<footer class="border-t border-primary/40 text-center py-6 text-sm text-white/70">
+  <p>Fonte Azzurra - Contenuti ufficiali SSC Napoli.</p>
+  <p>Non affiliato alla SSC Napoli S.p.A.</p>
 </footer>
-
-</div>
 </body>
 </html>
