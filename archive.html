@@ -76,7 +76,7 @@
 </div>
 
 <script>
-const ARTICLES_PER_PAGE = 25; // Impostato a 25
+const ARTICLES_PER_PAGE = 20; // Impostato a 20 come richiesto
 let allData = [];
 let currentPage = 1;
 
@@ -164,7 +164,7 @@ function renderPaginationControls(data) {
 fetch('feed.json')
     .then(response => response.json())
     .then(data => {
-        // Ordina tutti i dati dal più recente al più vecchio (Necessario per Archivio)
+        // Ordina tutti i dati dal più recente al più vecchio
         data.sort((a, b) => {
             const dateToComparable = (dateStr) => {
                 if (!dateStr || dateStr.length !== 10) return '00000000';
