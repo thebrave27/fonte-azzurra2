@@ -34,7 +34,7 @@ def parse_rss():
             entries.append({'title': title, 'link': entry.link, 'date': formatted_date, 'source': 'Fonte Azzurra'})
         return entries if entries else None
     except Exception:
-        return None
+        return []
 
 def scraping_fallback():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
@@ -72,7 +72,7 @@ def scraping_fallback():
     except Exception:
         return []
 
-# --- Scrittura HTML (LOGICA FINALE: RICERCA ANCORATA A <MAIN>) ---
+# --- Scrittura HTML (LOGICA DI RICERCA ANCORATA) ---
 def update_index_html(articles):
     """Aggiorna la sezione unica dei contenuti dinamici nel file index.html con ancoraggio."""
     
@@ -107,10 +107,10 @@ def update_index_html(articles):
         list_html += f'  </div>\n'
         list_html += f'</div>\n'
 
-    # 2. RICERCA ANCORATA: Iniziamo a cercare i marker DOPO l'inizio della sezione <main>
+    # 2. RICERCA ANCORATA: Troviamo l'inizio della sezione <main>
     main_start_index = updated_content.find(main_section_start)
     
-    # Se <main> non viene trovato, iniziamo la ricerca dall'inizio del file (fallback)
+    # Se <main> non viene trovato, iniziamo la ricerca dall'inizio del file (indice 0)
     search_start_from = main_start_index if main_start_index != -1 else 0
     
     # Cerchiamo i marker a partire dalla posizione (search_start_from)
@@ -118,7 +118,7 @@ def update_index_html(articles):
     end_index = updated_content.find(all_articles_end, search_start_from)
     
     if start_index != -1 and end_index != -1:
-        # Eseguiamo la sostituzione con string slicing (efficiente e sicuro)
+        # Sostituzione con string slicing: veloce, efficiente e non genera MemoryError
         final_content = (
             updated_content[:start_index + len(all_articles_start)] + 
             "\n" + list_html.strip() + "\n" + 
