@@ -48,8 +48,8 @@
     <div class="container mx-auto px-4 text-center">
         <h1 class="text-4xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
         <nav class="mt-3">
-            <a href="?lang=it" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">ITALIANO</a> | 
-            <a href="?lang=en" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">ENGLISH</a>
+            <a href="index.html" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">HOME</a> | 
+            <a href="archive.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">ARCHIVIO</a>
         </nav>
     </div>
 </header>
@@ -97,7 +97,6 @@ fetch('feed.json')
 
         // Genera l'HTML per ogni articolo
         data.forEach(article => {
-            // La pulizia di "(Fallback)" è stata rimossa dal JS perché non serve più
             const sourceClean = article.source.replace(" (Fallback)", "");
             
             const item = `
