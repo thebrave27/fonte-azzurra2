@@ -5,14 +5,14 @@ import json
 from datetime import datetime
 import re
 
-# --- Configurazione Corretta ---
+# --- Configurazione ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/"
 MAX_ARTICLES = 10
 FEED_JSON_PATH = 'feed.json'
 INDEX_HTML_PATH = 'index.html'
 
-# --- Parsing e Scraping (INVARIANTI) ---
+# --- Parsing e Scraping (Logica Invariata) ---
 def parse_rss():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
     try:
@@ -89,11 +89,12 @@ def update_index_html(articles):
     featured_html = ""
     for article in articles[:3]:
         link = article["link"] if article["link"] else "#"
-        featured_html += f'<div class="bg-napoli-card p-6 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">\n'
+        # Usa le classi per una card moderna
+        featured_html += f'<div class="bg-napoli-card p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">\n'
         featured_html += f'  <a href="{link}" target="_blank" class="block group space-y-3">\n'
         date_display = article["date"] if article["date"] else ""
-        featured_html += f'    <p class="text-sm font-semibold text-napoli-text/70">{date_display} <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>\n'
-        featured_html += f'    <h3 class="text-xl md:text-2xl font-bold text-napoli-text group-hover:text-napoli-white transition-colors duration-200">{article["title"]}</h3>\n'
+        featured_html += f'    <p class="text-sm font-semibold text-primary/70">{date_display} <span class="ml-2 text-napoli-white">| IN EVIDENZA</span></p>\n'
+        featured_html += f'    <h3 class="text-xl md:text-2xl font-bold text-napoli-white group-hover:text-primary transition-colors duration-200">{article["title"]}</h3>\n'
         featured_html += f'  </a>\n'
         featured_html += f'</div>\n'
     
@@ -103,17 +104,21 @@ def update_index_html(articles):
     if start_index != -1 and end_index != -1:
         updated_content = updated_content[:start_index + len(featured_start)] + "\n" + featured_html.strip() + "\n" + updated_content[end_index:]
     
-    # 2. GENERATE FULL LIST CONTENT (Articoli 4-10 - Card Semplice)
+    # 2. GENERATE FULL LIST CONTENT (Articoli 4-10 - Layout Lista)
     list_html = ""
     for article in articles[3:MAX_ARTICLES]:
         link = article["link"] if article["link"] else "#"
-        # Card semplice per la lista completa
-        list_html += f'<div class="bg-napoli-card p-4 rounded-lg shadow-md hover:shadow-xl transition-all duration-300">\n'
-        list_html += f'  <a href="{link}" target="_blank" class="block group">\n'
-        list_html += f'    <h3 class="text-lg font-bold text-napoli-white group-hover:text-napoli-text transition-colors duration-200">{article["title"]}</h3>\n'
-        list_html += f'  </a>\n'
-        date_display = article["date"] if article["date"] else ""
-        list_html += f'  <p class="text-xs mt-1 text-napoli-text/70">{date_display} <span class="font-semibold ml-2 text-napoli-text">| {article["source"]}</span></p>\n'
+        # Usa la griglia 1/4 (data/categoria) + 3/4 (titolo)
+        list_html += f'<div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">\n'
+        list_html += f'  <div class="md:col-span-1">\n'
+        list_html += f'    <p class="text-sm text-napoli-white/60">{article["date"]}</p>\n'
+        list_html += f'    <p class="text-primary font-semibold text-sm">{article["source"]}</p>\n'
+        list_html += f'  </div>\n'
+        list_html += f'  <div class="md:col-span-3">\n'
+        list_html += f'    <a class="group block" href="{link}" target="_blank">\n'
+        list_html += f'      <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">{article["title"]}</h3>\n'
+        list_html += f'    </a>\n'
+        list_html += f'  </div>\n'
         list_html += f'</div>\n'
 
     # Sostituzione per il blocco LIST
