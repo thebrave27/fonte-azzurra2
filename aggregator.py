@@ -10,8 +10,10 @@ from itertools import chain
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/" 
 
-# LIMITE DI ARTICOLI PER FONTE
-MAX_ARTICLES_PER_SOURCE = 25 
+# MODIFICA CRUCIALE: Aumentiamo il limite per raccogliere più notizie passate.
+# Non possiamo garantire un "inizio stagione" preciso tramite RSS, ma estraiamo
+# il massimo possibile (es. 100 per feed, se disponibili).
+MAX_ARTICLES_PER_SOURCE = 100 
 FEED_JSON_PATH = 'feed.json'
 
 # --- URL dei Feed RSS di Terze Parti ---
@@ -25,13 +27,14 @@ THIRD_PARTY_FEEDS = {
     'RAI Sport': 'https://www.rai.it/dl/RaiTV/rss/RaiSport_generico.xml'
 }
 
-# --- Parsing da Fonte Azzurra (Logica Invariata) ---
+# --- Parsing da Fonte Azzurra (Logica Invariata, limite aumentato) ---
 def parse_rss_fonteazzurra():
     """Tenta di analizzare il feed RSS di Fonte Azzurra."""
     try:
         feed = feedparser.parse(URL_FEED_AZZURRA)
         entries = []
-        for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]:
+        # Prendi MAX_ARTICLES_PER_SOURCE o meno
+        for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]: 
             title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
             date_str = getattr(entry, 'published', getattr(entry, 'updated', ''))
             
@@ -54,7 +57,7 @@ def parse_rss_fonteazzurra():
     except Exception:
         return []
 
-# --- Scraping di Fallback SSC Napoli (Logica Invariata) ---
+# --- Scraping di Fallback SSC Napoli (Logica Invariata, limite aumentato) ---
 def scraping_fallback_sscnapoli():
     """Esegue lo scraping degli articoli dal sito SSC Napoli (fallback)."""
     articles = []
@@ -135,11 +138,12 @@ def search_third_party_interviews():
         try:
             feed = feedparser.parse(feed_url)
             
-            for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]:
+            # Prendi MAX_ARTICLES_PER_SOURCE o meno
+            for entry in feed.entries[:MAX_ARTICLES_PER_SOURCE]: 
                 title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
                 title_lower = title.lower()
                 
-                # Check 0: Controllo IMMEDIATO dell'ESCLUSIONE (Il filtro più importante)
+                # Check 0: Controllo IMMEDIATO dell'ESCLUSIONE
                 if any(kw in title_lower for kw in EXCLUSION_FILTERS):
                     continue
 
