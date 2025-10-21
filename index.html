@@ -3,125 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fonte Azzurra - Comunicati Ufficiali SSC Napoli</title>
-
+<title>Fonte Azzurra - Notizie SSC Napoli</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet"/>
 
 <script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: '#A9CCE3',
-        dark: '#032B56',
-        card: '#05386B',
-        white: '#ffffff'
-      },
-      fontFamily: {
-        sans: ['Montserrat', 'sans-serif'],
-      }
+    // Configurazione Tailwind con i colori del Napoli
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'primary': '#A9CCE3',        /* Azzurro Chiaro (Highlight/Testo principale) */
+                    'background-dark': '#032B56',  /* Blu Scuro (Sfondo) */
+                    'napoli-card': '#05386B',    /* Blu Scheda Articolo */
+                    'napoli-white': '#ffffff',
+                },
+                fontFamily: {
+                    'sans': ['Montserrat', 'sans-serif'],
+                },
+            },
+        },
     }
-  }
-}
 </script>
 
 <style>
-body {
-  background-color: #032B56;
-  color: #ffffff;
-  font-family: 'Montserrat', sans-serif;
-}
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-}
+    body { background-color: #032B56; color: #ffffff; font-family: 'Montserrat', sans-serif; }
+    .container { max-width: 1200px; margin-left: auto; margin-right: auto; }
 </style>
 </head>
+<body class="bg-background-dark font-sans">
+<div class="relative flex min-h-screen w-full flex-col">
 
-<body class="bg-dark text-white">
-<header class="text-center py-8 border-b border-primary/40">
-  <h1 class="text-4xl font-bold">Fonte Azzurra</h1>
-  <nav class="mt-3">
-    <a href="?lang=it" class="text-white hover:text-primary font-semibold">IT</a>
-    <span class="mx-1 text-primary">|</span>
-    <a href="?lang=en" class="text-white hover:text-primary font-semibold">EN</a>
-  </nav>
+<header class="py-8 border-b-2 border-napoli-white/20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
+        <nav class="mt-3">
+            <a href="?lang=it" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">ITALIANO</a> | 
+            <a href="?lang=en" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">ENGLISH</a>
+        </nav>
+    </div>
 </header>
 
-<main class="container px-4 py-8">
-  <h2 class="text-2xl font-bold border-b border-primary pb-2 mb-6">Tutte le Notizie</h2>
-  <div id="all-articles" class="space-y-4">
+<main class="flex-1 container mx-auto px-4 py-8 lg:py-12">
+    
+    <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Ultime Notizie SSC Napoli</h2>
 
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
+    <div id="all-articles" class="space-y-2">
         </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-        <div class="bg-card p-5 rounded-xl shadow hover:shadow-lg transition">
-            <a href="" target="_blank" class="block group">
-                
-                <h3 class="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                    
-                </h3>
-            </a>
-        </div>
-        
-</div>
 </main>
 
-<footer class="border-t border-primary/40 text-center py-6 text-sm text-white/70">
-  <p>Fonte Azzurra - Contenuti ufficiali SSC Napoli.</p>
-  <p>Non affiliato alla SSC Napoli S.p.A.</p>
+<footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
+    <div class="container mx-auto px-4 py-6 text-center text-sm text-napoli-white/60">
+        <p>Fonte Azzurra - Aggregatore di notizie SSC Napoli.</p>
+        <p class="mt-1">Non affiliato alla SSC Napoli S.p.A.</p>
+    </div>
 </footer>
+
+</div>
 </body>
 </html>
