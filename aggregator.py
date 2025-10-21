@@ -10,19 +10,16 @@ from itertools import chain
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/" 
 
-# LIMITE DI ARTICOLI PER FONTE (25 come richiesto)
+# LIMITE DI ARTICOLI PER FONTE
 MAX_ARTICLES_PER_SOURCE = 25 
 FEED_JSON_PATH = 'feed.json'
 
 # --- URL dei Feed RSS di Terze Parti ---
 THIRD_PARTY_FEEDS = {
-    # Giornali Sportivi (Specifici/Generici)
     'Gazzetta dello Sport': 'https://www.gazzetta.it/rss/napoli.xml',
     'Corriere dello Sport': 'https://www.corrieredellosport.it/rss/napoli',
     'TuttoSport': 'https://www.tuttosport.com/rss/calcio/napoli',
     'CalcioMercato': 'https://www.calciomercato.com/feed/rss', 
-    
-    # Emittenti TV/Streaming (Generici)
     'Sky Sport': 'https://sport.sky.it/rss/calcio.xml', 
     'DAZN Italia': 'https://media.dazn.com/it/news-it/rss.xml',
     'RAI Sport': 'https://www.rai.it/dl/RaiTV/rss/RaiSport_generico.xml'
@@ -98,22 +95,38 @@ def scraping_fallback_sscnapoli():
     except Exception:
         return []
 
-# --- Aggregazione Interviste da Terze Parti (FILTRI ULTRA-RESTRITTIVI) ---
+# --- Aggregazione Interviste da Terze Parti (FILTRI ULTRA-RESTRITTIVI 25/26) ---
 def search_third_party_interviews():
     """
     Processa i feed RSS di terze parti, filtrando per dichiarazioni/interviste esclusive dei tesserati Napoli.
     """
     interview_articles = []
     
-    # Filtri per identificare dichiarazioni/interviste (più specifici)
-    KEYWORD_FILTERS = ["intervista", "parole di", "dichiarazioni di", "ha detto", "ha parlato", "esclusiva", "conferenza stampa", "post-partita", "l'intervista", "la conferenza", "parole forti"]
+    # Filtri per identificare dichiarazioni/interviste (solo quote dirette)
+    KEYWORD_FILTERS = ["dice", "ha detto", "parole di", "intervista a", "conferenza", "post-partita", "la replica", "ha rilasciato", "la verità di", "esclusiva", "parla di"]
     
-    # Nomi/Titoli dei tesserati (concentrati su figure chiave per il 2025/26)
+    # Nomi/Titoli dei tesserati SSC Napoli (ROSA UFFICIALE FORNITA - MASSIMA PRECISIONE)
     TESSERATI_FILTERS = [
-        "conte", "de laurentiis", "kvaratskhelia", "osimen", 
-        "di lorenzo", "raspadori", "meret", "politano", "cajuste", 
-        "mister", "presidente", "adl", "dirigente"
+        # Dirigenza/Tecnici
+        "conte", "de laurentiis", "manna", "adl", "presidente", "ds", "allenatore", 
+        
+        # Portieri
+        "meret", "milinković-savić", "contini", 
+        
+        # Difensori
+        "buongiorno", "beukema", "rrahmani", "marianucci", "juan jesus", 
+        "miguel gutiérrez", "olivera", "spinazzola", "di lorenzo", "mazzocchi", 
+        
+        # Centrocampisti
+        "lobotka", "gilmour", "mctominay", "anguissa", "de bruyne", 
+        "elmas", "vergara", "lang", 
+        
+        # Attaccanti
+        "david neres", "politano", "højlund", "lucca", "lukaku", "ambrosino"
     ]
+    
+    # FILTRI DI ESCLUSIONE: parole che indicano mercato, ipotesi, o citazioni indirette
+    EXCLUSION_FILTERS = ["secondo", "pista", "cessione", "mercato", "rumors", "affare", "trattativa", "ipotesi", "obiettivo", "valutazione", "la moglie", "l'agente", "l'ex", "l'idea di", "il punto", "infortunio", "le cifre", "il bilancio", "gli eredi", "retroscena", "accostato", "il nodo", "proposta", "chiama", "l'ombra di", "il retroscena", "possibile"]
     
     # Feed già specifici sul Napoli
     NAPOLI_SPECIFIC_FEEDS = ['Gazzetta dello Sport', 'Corriere dello Sport', 'TuttoSport']
@@ -126,19 +139,22 @@ def search_third_party_interviews():
                 title = BeautifulSoup(entry.title, 'html.parser').get_text().strip()
                 title_lower = title.lower()
                 
-                # Check 1: L'articolo ha termini di dichiarazione?
+                # Check 0: Controllo IMMEDIATO dell'ESCLUSIONE (Il filtro più importante)
+                if any(kw in title_lower for kw in EXCLUSION_FILTERS):
+                    continue
+
+                # Check 1: L'articolo ha termini di dichiarazione? (MANDATORIO)
                 has_interview_keywords = any(kw in title_lower for kw in KEYWORD_FILTERS)
                 
                 is_relevant = False
                 
+                # Check 2: Controllo dei tesserati/Napoli
                 if source_name in NAPOLI_SPECIFIC_FEEDS:
-                    # Per i feed SPECIFICI sul Napoli, è necessario che il titolo indichi una dichiarazione E menzioni Napoli/Azzurri
+                    # Per i feed SPECIFICI sul Napoli: Dichiarazione E menzione di Napoli/Tesserato
                     has_napoli_or_tesserato = any(kw in title_lower for kw in ["napoli", "azzurri"] + TESSERATI_FILTERS)
                     is_relevant = has_interview_keywords and has_napoli_or_tesserato
                 else:
-                    # Per i feed GENERICI (Sky, DAZN, RAI, CalcioMercato), è necessario:
-                    # 1. Parola chiave di dichiarazione.
-                    # 2. Il nome di un Tesserato specifico (più restrittivo di prima).
+                    # Per i feed GENERICI: Dichiarazione E menzione di un Tesserato specifico.
                     has_tesserati_keywords = any(kw in title_lower for kw in TESSERATI_FILTERS)
                     is_relevant = has_interview_keywords and has_tesserati_keywords
 
