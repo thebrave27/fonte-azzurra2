@@ -58,7 +58,7 @@
     
     <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Archivio Completo Notizie</h2>
 
-    <div id="archive-articles" class="space-y-2">
+    <div id="archive-articles" class="space-y-0">
         <p class="text-napoli-white/60 text-center py-8">Caricamento archivio...</p>
     </div>
     
@@ -76,7 +76,7 @@
 </div>
 
 <script>
-const ARTICLES_PER_PAGE = 25; // Impostiamo a 25 come richiesto
+const ARTICLES_PER_PAGE = 25; // Impostato a 25
 let allData = [];
 let currentPage = 1;
 
@@ -90,15 +90,20 @@ function renderArticles(data, page) {
 
     articlesToShow.forEach(article => {
         const sourceClean = article.source.replace(" (Fallback)", "");
+        // Struttura migliorata per chiarezza e allineamento
         const item = `
-        <div class="grid md:grid-cols-4 gap-6 items-start py-4 border-b border-napoli-card/50 hover:bg-napoli-card/20 p-2 -mx-2 rounded-lg transition-colors">
-            <div class="md:col-span-1">
-                <p class="text-sm text-napoli-white/60">${article.date || 'Data Sconosciuta'}</p>
-                <p class="text-primary font-semibold text-sm">${sourceClean}</p>
+        <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-card/50 hover:bg-napoli-card/20 transition-colors">
+            
+            <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs sm:text-sm">
+                <p class="text-napoli-white/60 font-medium">${article.date || 'Data Sconosciuta'}</p>
+                <p class="text-primary font-bold mt-0.5 sm:mt-0">${sourceClean}</p>
             </div>
-            <div class="md:col-span-3">
+
+            <div class="col-span-12 sm:col-span-9 lg:col-span-10">
                 <a class="group block" href="${article.link || '#'}" target="_blank">
-                    <h3 class="text-xl font-bold text-napoli-white group-hover:text-primary transition-colors">${article.title}</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-napoli-white group-hover:text-primary transition-colors leading-snug">
+                        ${article.title}
+                    </h3>
                 </a>
             </div>
         </div>`;
@@ -116,9 +121,9 @@ function renderPaginationControls(data) {
 
     // Bottone Precedente
     const prevButton = document.createElement('button');
-    prevButton.textContent = 'Precedente';
-    prevButton.className = `px-4 py-2 rounded font-bold transition-colors ${
-        currentPage === 1 ? 'bg-napoli-card text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white'
+    prevButton.textContent = '← Precedente';
+    prevButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-lg ${
+        currentPage === 1 ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
     }`;
     prevButton.disabled = currentPage === 1;
     prevButton.onclick = () => {
@@ -134,14 +139,14 @@ function renderPaginationControls(data) {
     // Indicatore Pagina
     const pageIndicator = document.createElement('span');
     pageIndicator.textContent = `Pagina ${currentPage} di ${totalPages}`;
-    pageIndicator.className = 'text-lg font-semibold text-napoli-white';
+    pageIndicator.className = 'text-lg font-bold text-napoli-white px-2';
     controlsContainer.appendChild(pageIndicator);
     
     // Bottone Successivo
     const nextButton = document.createElement('button');
-    nextButton.textContent = 'Successivo';
-    nextButton.className = `px-4 py-2 rounded font-bold transition-colors ${
-        currentPage === totalPages ? 'bg-napoli-card text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white'
+    nextButton.textContent = 'Successivo →';
+    nextButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-lg ${
+        currentPage === totalPages ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
     }`;
     nextButton.disabled = currentPage === totalPages;
     nextButton.onclick = () => {
@@ -159,7 +164,7 @@ function renderPaginationControls(data) {
 fetch('feed.json')
     .then(response => response.json())
     .then(data => {
-        // Ordina tutti i dati dal più recente al più vecchio
+        // Ordina tutti i dati dal più recente al più vecchio (Necessario per Archivio)
         data.sort((a, b) => {
             const dateToComparable = (dateStr) => {
                 if (!dateStr || dateStr.length !== 10) return '00000000';
