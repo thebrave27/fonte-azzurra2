@@ -8,7 +8,7 @@ import re
 # --- Configurazione ---
 URL_FEED_AZZURRA = "https://www.fonteazzurra.it/feed/"
 FALLBACK_URL = "https://sscnapoli.it/news/"
-MAX_ARTICLES = 15 
+MAX_ARTICLES = 15 # Numero massimo di articoli da mostrare
 FEED_JSON_PATH = 'feed.json'
 INDEX_HTML_PATH = 'index.html'
 
@@ -72,11 +72,13 @@ def scraping_fallback():
     except Exception:
         return []
 
-# --- Scrittura HTML (LOGICA FINALE: PULIZIA GLOBALE E INIEZIONE UNICA) ---
+# --- Scrittura HTML (LOGICA FINALE: RICERCA ANCORATA A <MAIN>) ---
 def update_index_html(articles):
-    """Aggiorna la sezione unica dei contenuti dinamici nel file index.html."""
+    """Aggiorna la sezione unica dei contenuti dinamici nel file index.html con ancoraggio."""
     
     all_articles_start, all_articles_end = '', ''
+    # Usiamo l'inizio della sezione <main> come àncora per iniziare la ricerca
+    main_section_start = '<main class="flex-1 container mx-auto px-4 py-8 lg:py-12">' 
 
     try:
         with open(INDEX_HTML_PATH, 'r', encoding='utf-8') as f: 
@@ -105,55 +107,28 @@ def update_index_html(articles):
         list_html += f'  </div>\n'
         list_html += f'</div>\n'
 
-    # 2. DEFINISCI IL BLOCCO DI SOSTITUZIONE COMPLETO
-    # Questo è il blocco esatto che verrà iniettato, inclusi i marker.
-    replacement_block = f'{all_articles_start}\n{list_html.strip()}\n{all_articles_end}'
+    # 2. RICERCA ANCORATA: Iniziamo a cercare i marker DOPO l'inizio della sezione <main>
+    main_start_index = updated_content.find(main_section_start)
     
-    # 3. REGEX: TROVA TUTTE LE OCCORRENZE DEL BLOCCO E PULISCI
-    # Il pattern cerca il marker di inizio, seguito da qualsiasi contenuto (non avido), fino al marker di fine.
-    pattern = re.compile(rf'{re.escape(all_articles_start)}.*?{re.escape(all_articles_end)}', re.DOTALL)
+    # Se <main> non viene trovato, iniziamo la ricerca dall'inizio del file (fallback)
+    search_start_from = main_start_index if main_start_index != -1 else 0
     
-    # 4. ESEGUI LA PULIZIA: Rimpiazza TUTTE le occorrenze del vecchio blocco (incluse quelle indesiderate) con il SOLO blocco di rimpiazzo.
-    # Usiamo pattern.sub per sostituire tutte le occorrenze in una volta sola.
-    final_content = pattern.sub(replacement_block, updated_content)
-
-    # Questo assicura che se i marker sono duplicati (problema che genera l'iniezione doppia), 
-    # l'intero blocco tra i marker venga rimpiazzato con il nuovo contenuto, in tutti i posti.
-    # Tuttavia, se i marker sono duplicati, il risultato sarà comunque la duplicazione del contenuto.
+    # Cerchiamo i marker a partire dalla posizione (search_start_from)
+    start_index = updated_content.find(all_articles_start, search_start_from)
+    end_index = updated_content.find(all_articles_end, search_start_from)
     
-    # Soluzione alternativa: Rimuovere tutti i blocchi tranne l'ultimo.
-    # Eseguiamo la sostituzione globale (per pulire i vecchi contenuti), e poi ripristiniamo l'ultimo.
-    
-    # 3. BIS. PULIZIA TOTALE: Rimpiazza TUTTI i contenuti tra i marker con NULLA.
-    # Usiamo come replacement solo i due marker senza contenuti in mezzo.
-    clean_replacement = f'{all_articles_start}\n{all_articles_end}'
-    
-    # La REGEX con re.DOTALL cerca tutti i blocchi START...END nel file
-    updated_content = pattern.sub(clean_replacement, updated_content)
-    
-    # 4. INIEZIONE UNICA: Adesso, il file contiene SOLO i marker puliti. Cerchiamo l'ULTIMA occorrenza (quella che si trova in <main>)
-    # e iniettiamo il contenuto lì.
-
-    # Troviamo l'indice dell'ULTIMO marker di START.
-    last_start_index = updated_content.rfind(all_articles_start)
-    
-    if last_start_index != -1:
-        # Troviamo l'indice del marker di END che segue questo START.
-        last_end_index = updated_content.find(all_articles_end, last_start_index)
-        
-        if last_end_index != -1:
-            # Sostituiamo il blocco START...END con il blocco contenente gli articoli.
-            final_content = (
-                updated_content[:last_start_index] + 
-                replacement_block + 
-                updated_content[last_end_index + len(all_articles_end):]
-            )
-        else:
-            final_content = updated_content
+    if start_index != -1 and end_index != -1:
+        # Eseguiamo la sostituzione con string slicing (efficiente e sicuro)
+        final_content = (
+            updated_content[:start_index + len(all_articles_start)] + 
+            "\n" + list_html.strip() + "\n" + 
+            updated_content[end_index:]
+        )
     else:
+        # Se i marker non vengono trovati, non aggiorniamo il file
         final_content = updated_content
-    
-    # 5. Scrivi il contenuto aggiornato
+
+    # 3. Scrivi il contenuto aggiornato
     try:
         with open(INDEX_HTML_PATH, 'w', encoding='utf-8') as f:
             f.write(final_content)
