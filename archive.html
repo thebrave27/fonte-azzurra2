@@ -14,8 +14,8 @@
         theme: {
             extend: {
                 colors: {
-                    'primary': '#A9CCE3',        /* Azzurro Chiaro (Highlight/Testo principale) */
-                    'background-dark': '#032B56',  /* Blu Scuro (Sfondo) */
+                    'primary': '#A9CCE3',        /* Azzurro Chiaro */
+                    'background-dark': '#032B56',  /* Blu Scuro */
                     'napoli-card': '#05386B',    /* Blu Scheda Articolo */
                     'napoli-white': '#ffffff',
                 },
@@ -28,55 +28,45 @@
 </script>
 
 <style>
-    /* Applicazione degli stili base */
-    body { 
-        background-color: #032B56; 
-        color: #ffffff; 
-        font-family: 'Montserrat', sans-serif; 
-    }
-    .container { 
-        max-width: 1200px; 
-        margin-left: auto; 
-        margin-right: auto; 
-    }
+    body { background-color: #032B56; color: #ffffff; font-family: 'Montserrat', sans-serif; }
+    .container { max-width: 1200px; margin-left: auto; margin-right: auto; }
 </style>
 </head>
 <body class="bg-background-dark font-sans">
 <div class="relative flex min-h-screen w-full flex-col">
 
-<header class="py-8 border-b-2 border-napoli-white/20">
+<header class="py-6 border-b-2 border-napoli-white/20">
     <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
-        <nav class="mt-3">
-            <a href="index.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">HOME</a> | 
+        <h1 class="text-3xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
+        <nav class="mt-2">
+            <a href="index.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">HOME (ULTIME 20)</a> | 
             <a href="archive.html" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">ARCHIVIO</a>
         </nav>
     </div>
 </header>
 
-<main class="flex-1 container mx-auto px-4 py-8 lg:py-12">
+<main class="flex-1 container mx-auto px-4 py-8">
     
-    <h2 class="text-3xl font-bold text-napoli-white border-b-2 border-primary pb-2 mb-8">Archivio Completo Notizie</h2>
+    <h2 class="text-2xl font-bold text-napoli-white border-b border-primary pb-2 mb-6">Archivio Completo Notizie</h2>
 
     <div id="archive-articles" class="space-y-0">
-        <p class="text-napoli-white/60 text-center py-8">Caricamento archivio...</p>
+        <p class="text-napoli-white/60 text-center py-6">Caricamento archivio...</p>
     </div>
     
-    <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-8">
-        </div>
+    <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-6">
+    </div>
 </main>
 
 <footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
-    <div class="container mx-auto px-4 py-6 text-center text-sm text-napoli-white/60">
-        <p>Fonte Azzurra - Aggregatore indipendente di notizie sulla SSC Napoli.</p>
-        <p class="mt-1">Archivio. Non affiliato alla SSC Napoli S.p.A.</p>
+    <div class="container mx-auto px-4 py-4 text-center text-xs text-napoli-white/60">
+        <p>Fonte Azzurra - Archivio. Non affiliato alla SSC Napoli.</p>
     </div>
 </footer>
 
 </div>
 
 <script>
-const ARTICLES_PER_PAGE = 20; // Impostato a 20 come richiesto
+const ARTICLES_PER_PAGE = 20; // Paginazione a 20 articoli
 let allData = [];
 let currentPage = 1;
 
@@ -90,15 +80,12 @@ function renderArticles(data, page) {
 
     articlesToShow.forEach(article => {
         const sourceClean = article.source.replace(" (Fallback)", "");
-        // Struttura migliorata per chiarezza e allineamento
         const item = `
         <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-card/50 hover:bg-napoli-card/20 transition-colors">
-            
             <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs sm:text-sm">
                 <p class="text-napoli-white/60 font-medium">${article.date || 'Data Sconosciuta'}</p>
                 <p class="text-primary font-bold mt-0.5 sm:mt-0">${sourceClean}</p>
             </div>
-
             <div class="col-span-12 sm:col-span-9 lg:col-span-10">
                 <a class="group block" href="${article.link || '#'}" target="_blank">
                     <h3 class="text-base sm:text-lg font-semibold text-napoli-white group-hover:text-primary transition-colors leading-snug">
@@ -122,7 +109,7 @@ function renderPaginationControls(data) {
     // Bottone Precedente
     const prevButton = document.createElement('button');
     prevButton.textContent = '← Precedente';
-    prevButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-lg ${
+    prevButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-md ${
         currentPage === 1 ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
     }`;
     prevButton.disabled = currentPage === 1;
@@ -131,7 +118,7 @@ function renderPaginationControls(data) {
             currentPage--;
             renderArticles(allData, currentPage);
             renderPaginationControls(allData);
-            window.scrollTo(0, 0); // Torna in cima alla pagina
+            window.scrollTo(0, 0);
         }
     };
     controlsContainer.appendChild(prevButton);
@@ -139,13 +126,13 @@ function renderPaginationControls(data) {
     // Indicatore Pagina
     const pageIndicator = document.createElement('span');
     pageIndicator.textContent = `Pagina ${currentPage} di ${totalPages}`;
-    pageIndicator.className = 'text-lg font-bold text-napoli-white px-2';
+    pageIndicator.className = 'text-base font-bold text-napoli-white px-3';
     controlsContainer.appendChild(pageIndicator);
     
     // Bottone Successivo
     const nextButton = document.createElement('button');
     nextButton.textContent = 'Successivo →';
-    nextButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-lg ${
+    nextButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-md ${
         currentPage === totalPages ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
     }`;
     nextButton.disabled = currentPage === totalPages;
@@ -154,7 +141,7 @@ function renderPaginationControls(data) {
             currentPage++;
             renderArticles(allData, currentPage);
             renderPaginationControls(allData);
-            window.scrollTo(0, 0); // Torna in cima alla pagina
+            window.scrollTo(0, 0);
         }
     };
     controlsContainer.appendChild(nextButton);
@@ -164,7 +151,7 @@ function renderPaginationControls(data) {
 fetch('feed.json')
     .then(response => response.json())
     .then(data => {
-        // Ordina tutti i dati dal più recente al più vecchio
+        // Ordina tutti i dati dal più recente al più vecchio (Fondamentale per Archivio)
         data.sort((a, b) => {
             const dateToComparable = (dateStr) => {
                 if (!dateStr || dateStr.length !== 10) return '00000000';
@@ -178,18 +165,18 @@ fetch('feed.json')
             return db.localeCompare(da); 
         });
         
-        allData = data; // Salva tutti i dati
+        allData = data; 
         renderArticles(allData, currentPage);
         renderPaginationControls(allData);
         
         if (data.length === 0) {
-            document.getElementById('archive-articles').innerHTML = '<p class="text-napoli-white/60 text-center py-8">Nessuna notizia disponibile nell\'archivio.</p>';
+            document.getElementById('archive-articles').innerHTML = '<p class="text-napoli-white/60 text-center py-6">Nessuna notizia disponibile nell\'archivio.</p>';
         }
     })
     .catch(error => {
         console.error('Errore nel caricamento del feed:', error);
         document.getElementById('archive-articles').innerHTML = 
-            '<p class="text-napoli-white/60 text-center py-8">Impossibile caricare l\'archivio notizie al momento. Riprova più tardi.</p>';
+            '<p class="text-napoli-white/60 text-center py-6">Impossibile caricare l\'archivio notizie.</p>';
         document.getElementById('pagination-controls').innerHTML = '';
     });
 </script>
