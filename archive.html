@@ -3,21 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Archivio Notizie SSC Napoli - Fonte Azzurra</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<title>SSC Napoli Feed - Archivio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet"/>
 
 <script>
     tailwind.config = {
         theme: {
             extend: {
                 colors: {
-                    'primary': '#A9CCE3',        /* Azzurro Chiaro */
-                    'background-dark': '#032B56',  /* Blu Scuro */
-                    'napoli-card': '#05386B',    /* Blu Scheda Articolo */
-                    'napoli-white': '#ffffff',
+                    'napoli-blue': '#003E99',      /* Blu Napoli classico */
+                    'napoli-light': '#A9CCE3',     /* Azzurro chiaro/primario */
+                    'bg-dark': '#011A41',          /* Blu scuro di sfondo */
+                    'text-white': '#ffffff',
                 },
                 fontFamily: {
                     'sans': ['Montserrat', 'sans-serif'],
@@ -28,45 +26,42 @@
 </script>
 
 <style>
-    body { background-color: #032B56; color: #ffffff; font-family: 'Montserrat', sans-serif; }
-    .container { max-width: 1200px; margin-left: auto; margin-right: auto; }
+    body { background-color: #011A41; color: #ffffff; font-family: 'Montserrat', sans-serif; }
+    .container { max-width: 900px; margin-left: auto; margin-right: auto; }
 </style>
 </head>
-<body class="bg-background-dark font-sans">
-<div class="relative flex min-h-screen w-full flex-col">
+<body class="bg-bg-dark font-sans min-h-screen flex flex-col">
 
-<header class="py-6 border-b-2 border-napoli-white/20">
+<header class="py-6 border-b border-napoli-light/30">
     <div class="container mx-auto px-4 text-center">
-        <h1 class="text-3xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
+        <h1 class="text-3xl font-black text-napoli-light tracking-wider">SSC NAPOLI FEED</h1>
         <nav class="mt-2">
-            <a href="index.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">HOME (ULTIME 20)</a> | 
-            <a href="archive.html" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">ARCHIVIO</a>
+            <a href="index.html" class="text-text-white/70 mx-2 font-bold hover:text-napoli-light transition-colors">HOME</a> | 
+            <a href="archive.html" class="text-napoli-light mx-2 font-bold hover:text-text-white transition-colors border-b-2 border-napoli-light">ARCHIVIO</a>
         </nav>
     </div>
 </header>
 
 <main class="flex-1 container mx-auto px-4 py-8">
     
-    <h2 class="text-2xl font-bold text-napoli-white border-b border-primary pb-2 mb-6">Archivio Completo Notizie</h2>
+    <h2 class="text-xl font-bold text-text-white mb-4 border-b border-text-white/30 pb-2">Archivio Completo (20 Articoli per Pagina)</h2>
 
     <div id="archive-articles" class="space-y-0">
-        <p class="text-napoli-white/60 text-center py-6">Caricamento archivio...</p>
+        <p class="text-text-white/60 text-center py-6">Caricamento archivio...</p>
     </div>
     
     <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-6">
     </div>
 </main>
 
-<footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
-    <div class="container mx-auto px-4 py-4 text-center text-xs text-napoli-white/60">
-        <p>Fonte Azzurra - Archivio. Non affiliato alla SSC Napoli.</p>
+<footer class="mt-auto border-t border-napoli-light/30">
+    <div class="container mx-auto px-4 py-4 text-center text-xs text-text-white/50">
+        <p>SSC Napoli Feed - Archivio Articoli. Articoli filtrati da Luglio 2025.</p>
     </div>
 </footer>
 
-</div>
-
 <script>
-const ARTICLES_PER_PAGE = 20; // Paginazione a 20 articoli
+const ARTICLES_PER_PAGE = 20; // 20 articoli per pagina
 let allData = [];
 let currentPage = 1;
 
@@ -78,17 +73,29 @@ function renderArticles(data, page) {
     const end = start + ARTICLES_PER_PAGE;
     const articlesToShow = data.slice(start, end);
 
+    if (articlesToShow.length === 0 && data.length > 0) {
+        // Se si tenta di caricare una pagina vuota (es. dopo aver eliminato l'ultima pagina)
+        currentPage = 1;
+        renderArticles(data, currentPage);
+        renderPaginationControls(data);
+        return;
+    }
+    
+    if (data.length === 0) {
+        container.innerHTML = '<p class="text-text-white/60 text-center py-6">Nessuna notizia disponibile nell\'archivio per la stagione in corso.</p>';
+        return;
+    }
+
     articlesToShow.forEach(article => {
-        const sourceClean = article.source.replace(" (Fallback)", "");
         const item = `
-        <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-card/50 hover:bg-napoli-card/20 transition-colors">
-            <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs sm:text-sm">
-                <p class="text-napoli-white/60 font-medium">${article.date || 'Data Sconosciuta'}</p>
-                <p class="text-primary font-bold mt-0.5 sm:mt-0">${sourceClean}</p>
+        <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-light/10 hover:bg-napoli-blue/20 transition-colors">
+            <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs">
+                <p class="text-text-white/60 font-medium">${article.source}</p>
+                <p class="text-napoli-light font-bold mt-0.5 sm:mt-0">${article.date || 'Data Sconosciuta'}</p>
             </div>
             <div class="col-span-12 sm:col-span-9 lg:col-span-10">
                 <a class="group block" href="${article.link || '#'}" target="_blank">
-                    <h3 class="text-base sm:text-lg font-semibold text-napoli-white group-hover:text-primary transition-colors leading-snug">
+                    <h3 class="text-base sm:text-lg font-semibold text-text-white group-hover:text-napoli-light transition-colors leading-snug">
                         ${article.title}
                     </h3>
                 </a>
@@ -106,77 +113,57 @@ function renderPaginationControls(data) {
 
     if (totalPages <= 1) return;
 
+    // Funzione di navigazione
+    const navigate = (newPage) => {
+        currentPage = newPage;
+        renderArticles(allData, currentPage);
+        renderPaginationControls(allData);
+        window.scrollTo(0, 0); // Torna in cima alla pagina
+    };
+    
     // Bottone Precedente
     const prevButton = document.createElement('button');
     prevButton.textContent = '← Precedente';
-    prevButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-md ${
-        currentPage === 1 ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
+    prevButton.className = `px-4 py-2 rounded-md font-bold transition-colors shadow-md text-sm ${
+        currentPage === 1 ? 'bg-napoli-blue/50 text-text-white/50 cursor-not-allowed' : 'bg-napoli-light text-bg-dark hover:bg-text-white/90'
     }`;
     prevButton.disabled = currentPage === 1;
-    prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderArticles(allData, currentPage);
-            renderPaginationControls(allData);
-            window.scrollTo(0, 0);
-        }
-    };
+    prevButton.onclick = () => navigate(currentPage - 1);
     controlsContainer.appendChild(prevButton);
 
     // Indicatore Pagina
     const pageIndicator = document.createElement('span');
     pageIndicator.textContent = `Pagina ${currentPage} di ${totalPages}`;
-    pageIndicator.className = 'text-base font-bold text-napoli-white px-3';
+    pageIndicator.className = 'text-base font-bold text-text-white px-3';
     controlsContainer.appendChild(pageIndicator);
     
     // Bottone Successivo
     const nextButton = document.createElement('button');
     nextButton.textContent = 'Successivo →';
-    nextButton.className = `px-4 py-2 rounded-full font-bold transition-colors shadow-md ${
-        currentPage === totalPages ? 'bg-napoli-card/50 text-napoli-white/50 cursor-not-allowed' : 'bg-primary text-background-dark hover:bg-napoli-white/90'
+    nextButton.className = `px-4 py-2 rounded-md font-bold transition-colors shadow-md text-sm ${
+        currentPage === totalPages ? 'bg-napoli-blue/50 text-text-white/50 cursor-not-allowed' : 'bg-napoli-light text-bg-dark hover:bg-text-white/90'
     }`;
     nextButton.disabled = currentPage === totalPages;
-    nextButton.onclick = () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderArticles(allData, currentPage);
-            renderPaginationControls(allData);
-            window.scrollTo(0, 0);
-        }
-    };
+    nextButton.onclick = () => navigate(currentPage + 1);
     controlsContainer.appendChild(nextButton);
 }
 
 
 fetch('feed.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
     .then(data => {
-        // Ordina tutti i dati dal più recente al più vecchio (Fondamentale per Archivio)
-        data.sort((a, b) => {
-            const dateToComparable = (dateStr) => {
-                if (!dateStr || dateStr.length !== 10) return '00000000';
-                const parts = dateStr.split('/');
-                return parts[2] + parts[1] + parts[0];
-            };
-            
-            const da = dateToComparable(a.date);
-            const db = dateToComparable(b.date);
-            
-            return db.localeCompare(da); 
-        });
-        
+        // Non serve riordinare qui, perché aggregator.py ha già fatto il lavoro.
         allData = data; 
         renderArticles(allData, currentPage);
         renderPaginationControls(allData);
-        
-        if (data.length === 0) {
-            document.getElementById('archive-articles').innerHTML = '<p class="text-napoli-white/60 text-center py-6">Nessuna notizia disponibile nell\'archivio.</p>';
-        }
     })
     .catch(error => {
         console.error('Errore nel caricamento del feed:', error);
         document.getElementById('archive-articles').innerHTML = 
-            '<p class="text-napoli-white/60 text-center py-6">Impossibile caricare l\'archivio notizie.</p>';
+            '<p class="text-text-white/60 text-center py-6">Impossibile caricare l\'archivio notizie.</p>';
         document.getElementById('pagination-controls').innerHTML = '';
     });
 </script>
