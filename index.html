@@ -3,21 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fonte Azzurra - Ultime Notizie SSC Napoli</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<title>SSC Napoli Feed - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet"/>
 
 <script>
     tailwind.config = {
         theme: {
             extend: {
                 colors: {
-                    'primary': '#A9CCE3',        /* Azzurro Chiaro */
-                    'background-dark': '#032B56',  /* Blu Scuro */
-                    'napoli-card': '#05386B',    /* Blu Scheda Articolo */
-                    'napoli-white': '#ffffff',
+                    'napoli-blue': '#003E99',      /* Blu Napoli classico */
+                    'napoli-light': '#A9CCE3',     /* Azzurro chiaro/primario */
+                    'bg-dark': '#011A41',          /* Blu scuro di sfondo */
+                    'text-white': '#ffffff',
                 },
                 fontFamily: {
                     'sans': ['Montserrat', 'sans-serif'],
@@ -28,91 +26,83 @@
 </script>
 
 <style>
-    body { background-color: #032B56; color: #ffffff; font-family: 'Montserrat', sans-serif; }
-    .container { max-width: 1200px; margin-left: auto; margin-right: auto; }
+    body { background-color: #011A41; color: #ffffff; font-family: 'Montserrat', sans-serif; }
+    .container { max-width: 900px; margin-left: auto; margin-right: auto; }
 </style>
 </head>
-<body class="bg-background-dark font-sans">
-<div class="relative flex min-h-screen w-full flex-col">
+<body class="bg-bg-dark font-sans min-h-screen flex flex-col">
 
-<header class="py-6 border-b-2 border-napoli-white/20">
+<header class="py-6 border-b border-napoli-light/30">
     <div class="container mx-auto px-4 text-center">
-        <h1 class="text-3xl font-black text-napoli-white tracking-wider">FONTE AZZURRA</h1>
+        <h1 class="text-3xl font-black text-napoli-light tracking-wider">SSC NAPOLI FEED</h1>
         <nav class="mt-2">
-            <a href="index.html" class="text-primary mx-2 hover:text-napoli-white font-bold transition-colors">HOME (ULTIME 20)</a> | 
-            <a href="archive.html" class="text-napoli-white/70 mx-2 hover:text-primary font-bold transition-colors">ARCHIVIO</a>
+            <a href="index.html" class="text-napoli-light mx-2 font-bold hover:text-text-white transition-colors border-b-2 border-napoli-light">HOME</a> | 
+            <a href="archive.html" class="text-text-white/70 mx-2 font-bold hover:text-napoli-light transition-colors">ARCHIVIO</a>
         </nav>
     </div>
 </header>
 
 <main class="flex-1 container mx-auto px-4 py-8">
     
-    <h2 class="text-2xl font-bold text-napoli-white border-b border-primary pb-2 mb-6">Ultime 20 Notizie Aggregate</h2>
+    <h2 class="text-xl font-bold text-text-white mb-4 border-b border-text-white/30 pb-2">Ultime 20 Notizie</h2>
 
-    <div id="all-articles" class="space-y-0">
-        <p class="text-napoli-white/60 text-center py-6">Caricamento notizie...</p>
+    <div id="articles-list" class="space-y-0">
+        <p class="text-text-white/60 text-center py-6">Caricamento notizie...</p>
     </div>
 </main>
 
-<footer class="bg-background-dark mt-auto border-t border-napoli-white/20">
-    <div class="container mx-auto px-4 py-4 text-center text-xs text-napoli-white/60">
-        <p>Fonte Azzurra - Aggregatore. Non affiliato alla SSC Napoli.</p>
+<footer class="mt-auto border-t border-napoli-light/30">
+    <div class="container mx-auto px-4 py-4 text-center text-xs text-text-white/50">
+        <p>SSC Napoli Feed - Aggregazione Articoli.</p>
     </div>
 </footer>
-
-</div>
 
 <script>
 const MAX_HOME_ARTICLES = 20;
 
+function renderArticles(data) {
+    const container = document.getElementById('articles-list');
+    container.innerHTML = '';
+    
+    // Mostra solo le prime 20 (già ordinate da aggregator.py)
+    const limitedData = data.slice(0, MAX_HOME_ARTICLES);
+
+    if (limitedData.length === 0) {
+        container.innerHTML = '<p class="text-text-white/60 text-center py-6">Nessuna notizia recente trovata.</p>';
+        return;
+    }
+
+    limitedData.forEach(article => {
+        const item = `
+        <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-light/10 hover:bg-napoli-blue/20 transition-colors">
+            <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs">
+                <p class="text-text-white/60 font-medium">${article.source}</p>
+                <p class="text-napoli-light font-bold mt-0.5 sm:mt-0">${article.date || 'Data Sconosciuta'}</p>
+            </div>
+            <div class="col-span-12 sm:col-span-9 lg:col-span-10">
+                <a class="group block" href="${article.link || '#'}" target="_blank">
+                    <h3 class="text-base sm:text-lg font-semibold text-text-white group-hover:text-napoli-light transition-colors leading-snug">
+                        ${article.title}
+                    </h3>
+                </a>
+            </div>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', item);
+    });
+}
+
 fetch('feed.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
     .then(data => {
-        const container = document.getElementById('all-articles');
-        container.innerHTML = ''; 
-
-        // Ordina dal più recente al più vecchio (assicura che le prime 20 siano le più recenti)
-        data.sort((a, b) => {
-            const dateToComparable = (dateStr) => {
-                if (!dateStr || dateStr.length !== 10) return '00000000';
-                const parts = dateStr.split('/');
-                return parts[2] + parts[1] + parts[0];
-            };
-            const da = dateToComparable(a.date);
-            const db = dateToComparable(b.date);
-            return db.localeCompare(da); 
-        });
-
-        const limitedData = data.slice(0, MAX_HOME_ARTICLES);
-
-        limitedData.forEach(article => {
-            const sourceClean = article.source.replace(" (Fallback)", "");
-            
-            const item = `
-            <div class="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-napoli-card/50 hover:bg-napoli-card/20 transition-colors">
-                <div class="col-span-12 sm:col-span-3 lg:col-span-2 flex flex-col sm:block text-xs sm:text-sm">
-                    <p class="text-napoli-white/60 font-medium">${article.date || 'Data Sconosciuta'}</p>
-                    <p class="text-primary font-bold mt-0.5 sm:mt-0">${sourceClean}</p>
-                </div>
-                <div class="col-span-12 sm:col-span-9 lg:col-span-10">
-                    <a class="group block" href="${article.link || '#'}" target="_blank">
-                        <h3 class="text-base sm:text-lg font-semibold text-napoli-white group-hover:text-primary transition-colors leading-snug">
-                            ${article.title}
-                        </h3>
-                    </a>
-                </div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', item);
-        });
-        
-        if (limitedData.length === 0) {
-            container.innerHTML = '<p class="text-napoli-white/60 text-center py-6">Nessuna notizia disponibile al momento.</p>';
-        }
+        renderArticles(data);
     })
     .catch(error => {
         console.error('Errore nel caricamento del feed:', error);
-        document.getElementById('all-articles').innerHTML = 
-            '<p class="text-napoli-white/60 text-center py-6">Errore nel caricamento delle notizie.</p>';
+        document.getElementById('articles-list').innerHTML = 
+            '<p class="text-text-white/60 text-center py-6">Errore nel caricamento delle notizie dal file JSON.</p>';
     });
 </script>
 
