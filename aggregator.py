@@ -9,9 +9,8 @@ import re
 FALLBACK_URL = "https://sscnapoli.it/news/" 
 FEED_JSON_PATH = 'feed.json'
 
-# !!!!!!! TEST TEMPORANEO: IMPOSTARE A 2023, 1, 1 PER VEDERE GLI ARTICOLI NEGLI SCREENSHOT !!!!!!!
-# !!!!!!! QUANDO IL PROGETTO E' IN PRODUZIONE, DEVE ESSERE: datetime(2025, 7, 1) !!!!!!!
-SEASON_START = datetime(2023, 1, 1)
+# Filtro Temporale: Inizio stagione (1 Luglio 2025)
+SEASON_START = datetime(2025, 7, 1)
 
 MAX_ARTICLES_TO_SCRAPE = 200 
 
@@ -25,10 +24,12 @@ def _extract_scraping_date(date_str):
     if date_str:
         try:
             date_obj = datetime.strptime(date_str, "%d/%m/%Y")
+            # Se la data è >= SEASON_START, è valida
             if date_obj >= SEASON_START:
                 return date_obj, date_str
         except ValueError:
-            pass # Data non valida
+            pass # Data non valida o mancante, fallisce il filtro data
+    # Se il parsing fallisce o se la data è precedente a SEASON_START
     return None, "Data Sconosciuta"
 
 # ---------------------------
@@ -44,6 +45,7 @@ def scraping_sscnapoli():
         response.raise_for_status()
 
         soup = BeautifulSoup(response.content, 'html.parser')
+        # Selettori per i container degli articoli del sito SSC Napoli
         containers = soup.select('div.elementor-posts-container article.elementor-post') \
                      or soup.find_all('div', class_=re.compile(r'elementor-post__card|post-card'))
 
@@ -51,12 +53,16 @@ def scraping_sscnapoli():
             a_tag = item.select_one('h3.elementor-post__title a') or item.select_one('a[href]')
             if not a_tag: continue
             
-            link = a_tag['href']
-            # Pulisce spazi multipli e tag HTML nel titolo
+            link = a_tag.get('href', '#')
+            
+            # Esclude link che puntano a file (es. PDF)
+            if link.lower().endswith(('.pdf', '.doc', '.zip')):
+                continue
+
+            # Pulizia Titolo: estrae il testo e rimuove duplicazioni
             title = BeautifulSoup(a_tag.get_text().strip(), 'html.parser').get_text()
             title = re.sub(r'\s+', ' ', title.strip())
             
-            # Tentativo di rimuovere titoli duplicati (es. "Notizia Notizia")
             parts = title.split()
             mid = len(parts) // 2
             if ' '.join(parts[:mid]) == ' '.join(parts[mid:]):
@@ -65,12 +71,14 @@ def scraping_sscnapoli():
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                 title = "Senza titolo"
 
-            # Estrazione data (più specifica)
-            date_tag = item.select_one('span.elementor-post-date') # Selettore più generico per la data
+            # Estrazione data (DD/MM/YYYY)
+            date_tag = item.select_one('span.elementor-post-date')
             date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_tag.get_text().strip()) if date_tag else None
             
+            # Tenta di estrarre e validare la data.
             date_obj, formatted_date = _extract_scraping_date(date_match.group(0) if date_match else None)
             
+            # Se la data è None, significa che l'articolo è precedente a SEASON_START o non ha data valida.
             if date_obj is None: 
                 continue 
 
@@ -98,7 +106,8 @@ def main():
     all_articles = scraping_sscnapoli()
     
     if not all_articles:
-        print(f"Nessun articolo trovato per la stagione (Season Start: {SEASON_START.strftime('%d/%m/%Y')}).")
+        print(f"Nessun articolo trovato dal {SEASON_START.strftime('%d/%m/%Y')}.")
+        # Salva un file vuoto se non ci sono dati recenti
         with open(FEED_JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump([], f, indent=4)
         return
@@ -106,6 +115,7 @@ def main():
     # Ordinamento: dal più recente al più datato
     all_articles.sort(key=lambda x: x.get('date_obj', datetime.min), reverse=True)
     
+    # Rimuove l'oggetto 'date_obj' prima di salvare
     for article in all_articles:
         if 'date_obj' in article:
             del article['date_obj']
