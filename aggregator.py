@@ -9,7 +9,7 @@ import re
 FALLBACK_URL = "https://sscnapoli.it/news/" 
 FEED_JSON_PATH = 'feed.json'
 
-# Filtro Temporale: Inizio stagione (1 Luglio 2025)
+# Filtro Temporale: Inizio stagione (1 Luglio 2025) - MANTENUTO CORRETTO
 SEASON_START = datetime(2025, 7, 1)
 
 MAX_ARTICLES_TO_SCRAPE = 200 
@@ -28,8 +28,7 @@ def _extract_scraping_date(date_str):
             if date_obj >= SEASON_START:
                 return date_obj, date_str
         except ValueError:
-            pass # Data non valida o mancante, fallisce il filtro data
-    # Se il parsing fallisce o se la data è precedente a SEASON_START
+            pass
     return None, "Data Sconosciuta"
 
 # ---------------------------
@@ -39,27 +38,34 @@ def _extract_scraping_date(date_str):
 def scraping_sscnapoli():
     """Esegue lo scraping delle notizie dal sito ufficiale SSC Napoli."""
     articles = []
+    
+    # 1. Recupero la pagina
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(FALLBACK_URL, headers=headers, timeout=15)
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        response = requests.get(FALLBACK_URL, headers=headers, timeout=20)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.content, 'html.parser')
-        # Selettori per i container degli articoli del sito SSC Napoli
-        containers = soup.select('div.elementor-posts-container article.elementor-post') \
-                     or soup.find_all('div', class_=re.compile(r'elementor-post__card|post-card'))
+        
+        # 2. SELETTORI POTENZIATI per i container degli articoli
+        containers = soup.select('div.elementor-posts-container article.elementor-post') or \
+                     soup.find_all('div', class_=re.compile(r'elementor-post__card|post-card|hentry|post'))
+
+        if not containers:
+            print("ERRORE CRITICO: Nessun contenitore articolo trovato con i selettori attuali.")
+            return []
 
         for item in containers[:MAX_ARTICLES_TO_SCRAPE]:
-            a_tag = item.select_one('h3.elementor-post__title a') or item.select_one('a[href]')
+            # --- Link e Titolo ---
+            # Cerca il link sia nell'h3 del titolo che in un generico <a> all'interno della card
+            a_tag = item.select_one('h3 a') or item.select_one('a[href]')
             if not a_tag: continue
             
             link = a_tag.get('href', '#')
-            
-            # Esclude link che puntano a file (es. PDF)
             if link.lower().endswith(('.pdf', '.doc', '.zip')):
                 continue
 
-            # Pulizia Titolo: estrae il testo e rimuove duplicazioni
+            # Pulizia Titolo
             title = BeautifulSoup(a_tag.get_text().strip(), 'html.parser').get_text()
             title = re.sub(r'\s+', ' ', title.strip())
             
@@ -71,14 +77,23 @@ def scraping_sscnapoli():
             if not title or title.lower() in ['leggi tutto', 'read more', 'senza titolo']:
                 title = "Senza titolo"
 
-            # Estrazione data (DD/MM/YYYY)
-            date_tag = item.select_one('span.elementor-post-date')
-            date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_tag.get_text().strip()) if date_tag else None
+            # --- Data ---
+            # Cerca la data in qualsiasi span o div che possa contenere una data
+            date_tag = item.select_one('span.elementor-post-date') or \
+                       item.select_one('span.post-date') or \
+                       item.select_one('.date') or \
+                       item.select_one('time')
+
+            date_str = None
+            if date_tag:
+                # Estrai la stringa data (cerca il pattern DD/MM/YYYY)
+                date_match = re.search(r'\d{1,2}/\d{1,2}/\d{4}', date_tag.get_text().strip())
+                if date_match:
+                    date_str = date_match.group(0)
             
-            # Tenta di estrarre e validare la data.
-            date_obj, formatted_date = _extract_scraping_date(date_match.group(0) if date_match else None)
+            # Applica il filtro data (season_start)
+            date_obj, formatted_date = _extract_scraping_date(date_str)
             
-            # Se la data è None, significa che l'articolo è precedente a SEASON_START o non ha data valida.
             if date_obj is None: 
                 continue 
 
@@ -91,10 +106,10 @@ def scraping_sscnapoli():
             }) 
         return articles
     except requests.RequestException as e:
-        print(f"Errore di rete/richiesta: {e}")
+        print(f"Errore di rete/richiesta (controlla l'URL): {e}")
         return []
     except Exception as e:
-        print(f"Errore nello scraping: {e}")
+        print(f"Errore nello scraping (potrebbe essere la struttura cambiata): {e}")
         return []
 
 # ---------------------------
@@ -103,11 +118,12 @@ def scraping_sscnapoli():
 def main():
     """Esegue lo scraping, l'ordinamento e il salvataggio."""
     
+    print(f"Avvio scraping. Filtro data: >= {SEASON_START.strftime('%d/%m/%Y')}.")
+    
     all_articles = scraping_sscnapoli()
     
     if not all_articles:
-        print(f"Nessun articolo trovato dal {SEASON_START.strftime('%d/%m/%Y')}.")
-        # Salva un file vuoto se non ci sono dati recenti
+        print("Scraping completato: Nessun articolo recente trovato (o errore nello scraping).")
         with open(FEED_JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump([], f, indent=4)
         return
@@ -123,7 +139,7 @@ def main():
     try:
         with open(FEED_JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump(all_articles, f, indent=4, ensure_ascii=False)
-        print(f"Salvato {len(all_articles)} articoli in '{FEED_JSON_PATH}'.")
+        print(f"SUCCESSO: Salvato {len(all_articles)} articoli in '{FEED_JSON_PATH}'.")
     except Exception as e:
         print(f"Errore durante il salvataggio di feed.json: {e}")
 
